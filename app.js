@@ -508,7 +508,7 @@
         commit("Copied input to output", () => setGrid(reference, Core.cloneGrid(editorDocument.task[section][pairIndex].input)));
       }));
     }
-    actions.appendChild(actionButton("Fill color", "Fill the entire grid with the selected color", () => {
+    actions.appendChild(actionButton("Fill all", "Fill the entire grid with the selected color", () => {
       commit("Filled grid", () => setGrid(reference, Core.fillGrid(grid, selectedColor)));
     }));
     actions.appendChild(actionButton("Clear", "Clear this grid to black", () => {
@@ -560,7 +560,7 @@
     const heading = document.createElement("div");
     heading.className = "pair-heading";
     const title = document.createElement("h3");
-    title.textContent = `${section === "train" ? "Training" : "Test"} pair ${index + 1}`;
+    title.textContent = `${section === "train" ? "Example" : "Test"} ${index + 1}`;
     const controls = document.createElement("div");
     controls.className = "pair-heading-actions";
     const pairs = editorDocument.task[section];
