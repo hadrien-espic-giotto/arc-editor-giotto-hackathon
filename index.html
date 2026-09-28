@@ -26,7 +26,7 @@
         <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json">
         <button id="open-preview" class="button button-secondary" type="button">Preview</button>
         <button id="open-export" class="button button-primary" type="button">Check &amp; export</button>
-        <button id="open-shortcuts" class="button button-icon" type="button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+        <button id="open-shortcuts" class="button button-secondary keybinds-button" type="button" title="Open keybinds (?)">Keybinds</button>
       </div>
     </header>
 
@@ -174,21 +174,21 @@
       </form>
     </dialog>
 
-    <dialog id="shortcuts-dialog" class="modal">
+    <dialog id="shortcuts-dialog" class="modal shortcuts-modal">
       <form method="dialog" class="modal-card shortcuts-card">
         <div class="modal-heading">
-          <h2>Keyboard shortcuts</h2>
+          <div><p class="section-kicker">Quick reference</p><h2>Keybinds</h2></div>
           <button class="button button-icon" value="cancel" aria-label="Close shortcuts">×</button>
         </div>
         <dl class="shortcut-list">
-          <div><dt>0–9</dt><dd>Select a color</dd></div>
-          <div><dt>P / F / R / S</dt><dd>Paint, fill, rectangle, or select tool</dd></div>
-          <div><dt>Ctrl/⌘ + Z</dt><dd>Undo</dd></div>
-          <div><dt>Ctrl/⌘ + Shift + Z or Ctrl + Y</dt><dd>Redo</dd></div>
-          <div><dt>Ctrl/⌘ + C</dt><dd>Copy selected cells</dd></div>
-          <div><dt>Ctrl/⌘ + V</dt><dd>Paste at selection</dd></div>
-          <div><dt>Escape</dt><dd>Deselect cells or close a dialog</dd></div>
-          <div><dt>?</dt><dd>Open this reference</dd></div>
+          <div><dt><kbd>0–9</kbd></dt><dd>Select the matching palette color</dd></div>
+          <div><dt><kbd>P</kbd> <kbd>F</kbd> <kbd>R</kbd> <kbd>S</kbd></dt><dd>Switch to Paint, Fill, Rectangle, or Select</dd></div>
+          <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>Z</kbd></dt><dd>Undo the last change</dd></div>
+          <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></dt><dd>Redo the last change; <kbd>Ctrl</kbd> + <kbd>Y</kbd> also works</dd></div>
+          <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>C</kbd></dt><dd>Copy the selected cells</dd></div>
+          <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>V</kbd></dt><dd>Paste at the current selection</dd></div>
+          <div><dt><kbd>Esc</kbd></dt><dd>Deselect cells or close an open dialog</dd></div>
+          <div><dt><kbd>?</kbd></dt><dd>Open this keybind reference</dd></div>
         </dl>
       </form>
     </dialog>

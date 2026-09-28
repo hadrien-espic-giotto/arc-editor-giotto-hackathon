@@ -135,11 +135,16 @@ h3 { margin-bottom: 0; font-size: 1rem; }
 .preview-grid { display: grid; width: max-content; border: 2px solid #313746; background: #313746; gap: 1px; }
 .preview-cell { width: 20px; height: 20px; }
 .hidden-answer { display: grid; width: 86px; height: 86px; place-items: center; border: 2px dashed var(--line-strong); color: var(--line-strong); font-size: 2rem; }
-.shortcuts-card { max-width: 620px; }
-.shortcut-list { margin: 0; }
-.shortcut-list div { display: grid; grid-template-columns: 190px 1fr; gap: 14px; border-top: 1px solid var(--line); padding: 10px 0; }
+.keybinds-button { color: var(--accent-dark); }
+.shortcuts-modal { width: min(720px, calc(100% - 28px)); }
+.shortcuts-card { max-width: none; }
+.shortcuts-card .modal-heading { margin-bottom: 12px; }
+.shortcut-list { margin: 0; border-left: 4px solid #6c7cf2; border-radius: 9px; padding: 10px 16px; background: #f0f3ff; }
+.shortcut-list div { display: grid; grid-template-columns: 230px 1fr; align-items: center; gap: 14px; padding: 8px 0; }
+.shortcut-list div + div { border-top: 1px solid rgba(90, 103, 216, .13); }
 .shortcut-list dt { font-weight: 800; }
-.shortcut-list dd { margin: 0; color: var(--muted); }
+.shortcut-list dd { margin: 0; color: #3f4960; }
+.shortcut-list kbd { display: inline-block; min-width: 25px; border: 1px solid #bdc6e7; border-bottom-width: 2px; border-radius: 5px; padding: 2px 6px; background: #fff; color: var(--ink); font-family: inherit; font-size: .78rem; font-weight: 800; line-height: 1.25; text-align: center; }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 
