@@ -1,0 +1,9 @@
+{
+  "name": "giotto-arc-task-editor",
+  "version": "0.2.0",
+  "private": true,
+  "description": "A dependency-free single-task ARC editor for the Giotto hackathon.",
+  "scripts": {
+    "test": "node --test *.test.js"
+  }
+}

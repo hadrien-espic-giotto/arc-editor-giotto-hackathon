@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A dependable, offline-capable editor for authoring one ARC task.">
+    <meta name="theme-color" content="#5a67d8">
+    <title>Giotto ARC Task Editor</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#task-content">Skip to task</a>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Giotto Hackathon</p>
+        <h1>ARC Task Editor</h1>
+        <p class="subtitle">Create one task, validate it, and export standard ARC JSON.</p>
+      </div>
+      <div class="header-actions" aria-label="Document actions">
+        <span id="save-state" class="save-state" aria-live="polite">Saved locally</span>
+        <button id="undo" class="button button-secondary" type="button" title="Undo (Ctrl/⌘+Z)">Undo</button>
+        <button id="redo" class="button button-secondary" type="button" title="Redo (Ctrl/⌘+Shift+Z)">Redo</button>
+        <label class="button button-secondary file-button" for="import-file">Import</label>
+        <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json">
+        <button id="open-preview" class="button button-secondary" type="button">Preview</button>
+        <button id="open-export" class="button button-primary" type="button">Check &amp; export</button>
+        <button id="open-shortcuts" class="button button-icon" type="button" aria-label="Keyboard shortcuts" title="Keyboard shortcuts (?)">?</button>
+      </div>
+    </header>
+
+    <main id="task-content">
+      <section class="draft-bar card" aria-labelledby="draft-heading">
+        <div>
+          <h2 id="draft-heading">Local drafts</h2>
+          <p>Drafts are stored in this browser.</p>
+        </div>
+        <select id="draft-select" class="select-control" aria-label="Active draft"></select>
+        <div class="button-row">
+          <button id="new-draft" class="button button-secondary button-small" type="button">New</button>
+          <button id="duplicate-draft" class="button button-secondary button-small" type="button">Duplicate</button>
+          <button id="rename-draft" class="button button-secondary button-small" type="button">Rename</button>
+          <button id="delete-draft" class="button button-danger button-small" type="button">Delete</button>
+        </div>
+      </section>
+
+      <section class="metadata card" aria-labelledby="metadata-heading">
+        <div class="section-heading compact-heading">
+          <div>
+            <p class="section-kicker">Submission details</p>
+            <h2 id="metadata-heading">Task metadata</h2>
+          </div>
+          <p>Stored in editor backups; standard ARC exports remain schema-compatible.</p>
+        </div>
+        <div class="metadata-grid">
+          <label>Task title <input id="meta-title" type="text" autocomplete="off" placeholder="Moving squares"></label>
+          <label>Team identifier <input id="meta-team" type="text" autocomplete="off" placeholder="Team 07"></label>
+          <label class="wide-field">Rule explanation <textarea id="meta-rule" rows="3" placeholder="Describe the transformation in plain language."></textarea></label>
+          <label class="wide-field">Solvability notes <textarea id="meta-solvability" rows="3" placeholder="Explain why the demonstrations determine a unique answer."></textarea></label>
+        </div>
+      </section>
+
+      <section class="toolbar card" aria-labelledby="tools-heading">
+        <div class="tool-block">
+          <h2 id="tools-heading">Palette</h2>
+          <div id="palette" class="palette" aria-label="ARC colors"></div>
+        </div>
+        <div class="tool-block">
+          <h2>Drawing tool</h2>
+          <div id="drawing-tools" class="segmented" role="group" aria-label="Drawing tool">
+            <button class="tool-button selected" data-tool="paint" type="button" aria-pressed="true" title="Paint (P)">Paint</button>
+            <button class="tool-button" data-tool="fill" type="button" aria-pressed="false" title="Flood fill (F)">Fill</button>
+            <button class="tool-button" data-tool="rectangle" type="button" aria-pressed="false" title="Rectangle (R)">Rectangle</button>
+            <button class="tool-button" data-tool="select" type="button" aria-pressed="false" title="Select (S)">Select</button>
+          </div>
+        </div>
+        <div class="tool-block">
+          <h2>Selection</h2>
+          <div class="button-row">
+            <button id="copy-selection" class="button button-secondary button-small" type="button">Copy</button>
+            <button id="paste-selection" class="button button-secondary button-small" type="button">Paste</button>
+            <button id="clear-selection" class="button button-secondary button-small" type="button">Deselect</button>
+          </div>
+        </div>
+        <div class="tool-block pair-defaults">
+          <h2>New-pair defaults</h2>
+          <div class="inline-fields">
+            <label>W <input id="default-width" class="dimension-input" type="number" min="1" max="30" value="8"></label>
+            <label>H <input id="default-height" class="dimension-input" type="number" min="1" max="30" value="8"></label>
+          </div>
+          <label class="check-label"><input id="inherit-size" type="checkbox" checked> Inherit previous pair sizes</label>
+          <label class="check-label"><input id="wrap-shifts" type="checkbox"> Wrap shifted pixels</label>
+        </div>
+      </section>
+
+      <section class="task-section card" aria-labelledby="training-heading">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Examples</p>
+            <h2 id="training-heading">Training pairs</h2>
+          </div>
+          <button id="add-train" class="button button-secondary" type="button">Add training pair</button>
+        </div>
+        <div id="train-pairs" class="pairs"></div>
+      </section>
+
+      <section class="task-section card" aria-labelledby="testing-heading">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Challenge</p>
+            <h2 id="testing-heading">Test pairs</h2>
+          </div>
+          <button id="add-test" class="button button-secondary" type="button">Add test pair</button>
+        </div>
+        <div id="test-pairs" class="pairs"></div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <p id="status" role="status" aria-live="polite">Ready.</p>
+      <p>Works offline · ARC grids 1–30 · Colors 0–9</p>
+    </footer>
+
+    <dialog id="export-dialog" class="modal">
+      <form method="dialog" class="modal-card">
+        <div class="modal-heading">
+          <div><p class="section-kicker">Validation</p><h2>Check and export</h2></div>
+          <button class="button button-icon" value="cancel" aria-label="Close export dialog">×</button>
+        </div>
+        <div id="export-report"></div>
+        <div class="export-groups">
+          <section>
+            <h3>Canonical submission</h3>
+            <p>Complete standard ARC task, including expected test outputs.</p>
+            <button id="download-task" class="button button-primary" type="button">Download task JSON</button>
+          </section>
+          <section>
+            <h3>Solver and jury files</h3>
+            <p>Challenge hides test answers; answer key contains only private outputs.</p>
+            <div class="button-row">
+              <button id="download-challenge" class="button button-secondary" type="button">Challenge JSON</button>
+              <button id="download-answers" class="button button-secondary" type="button">Answer key JSON</button>
+            </div>
+          </section>
+          <section>
+            <h3>Images</h3>
+            <p>Clean PNGs for discussion, presentation, or manual checking.</p>
+            <div class="button-row">
+              <button id="download-puzzle-png" class="button button-secondary" type="button">Puzzle PNG</button>
+              <button id="download-answer-png" class="button button-secondary" type="button">Answer PNG</button>
+            </div>
+          </section>
+          <section>
+            <h3>Editor backup</h3>
+            <p>Includes metadata and can be imported back into this editor.</p>
+            <button id="download-backup" class="button button-secondary" type="button">Editor backup</button>
+          </section>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="preview-dialog" class="modal preview-modal">
+      <form method="dialog" class="modal-card preview-card">
+        <div class="modal-heading">
+          <div><p class="section-kicker">Solver view</p><h2>Task preview</h2></div>
+          <button class="button button-icon" value="cancel" aria-label="Close preview">×</button>
+        </div>
+        <div class="segmented preview-switch" role="group" aria-label="Preview mode">
+          <button id="preview-puzzle" class="tool-button selected" type="button" aria-pressed="true">Puzzle</button>
+          <button id="preview-answer" class="tool-button" type="button" aria-pressed="false">With answers</button>
+        </div>
+        <div id="preview-content" class="preview-content"></div>
+      </form>
+    </dialog>
+
+    <dialog id="shortcuts-dialog" class="modal">
+      <form method="dialog" class="modal-card shortcuts-card">
+        <div class="modal-heading">
+          <h2>Keyboard shortcuts</h2>
+          <button class="button button-icon" value="cancel" aria-label="Close shortcuts">×</button>
+        </div>
+        <dl class="shortcut-list">
+          <div><dt>0–9</dt><dd>Select a color</dd></div>
+          <div><dt>P / F / R / S</dt><dd>Paint, fill, rectangle, or select tool</dd></div>
+          <div><dt>Ctrl/⌘ + Z</dt><dd>Undo</dd></div>
+          <div><dt>Ctrl/⌘ + Shift + Z or Ctrl + Y</dt><dd>Redo</dd></div>
+          <div><dt>Ctrl/⌘ + C</dt><dd>Copy selected cells</dd></div>
+          <div><dt>Ctrl/⌘ + V</dt><dd>Paste at selection</dd></div>
+          <div><dt>Escape</dt><dd>Deselect cells or close a dialog</dd></div>
+          <div><dt>?</dt><dd>Open this reference</dd></div>
+        </dl>
+      </form>
+    </dialog>
+
+    <script src="core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

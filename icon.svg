@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Giotto ARC editor">
+  <rect width="512" height="512" rx="96" fill="#172033"/>
+  <g stroke="#172033" stroke-width="10">
+    <path fill="#5a67d8" d="M76 76h120v120H76z"/>
+    <path fill="#ff4136" d="M196 76h120v120H196z"/>
+    <path fill="#ffdc00" d="M316 76h120v120H316z"/>
+    <path fill="#2ecc40" d="M76 196h120v120H76z"/>
+    <path fill="#f4f6fa" d="M196 196h120v120H196z"/>
+    <path fill="#f012be" d="M316 196h120v120H316z"/>
+    <path fill="#7fdbff" d="M76 316h120v120H76z"/>
+    <path fill="#ff851b" d="M196 316h120v120H196z"/>
+    <path fill="#870c25" d="M316 316h120v120H316z"/>
+  </g>
+</svg>
