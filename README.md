@@ -42,7 +42,7 @@ service worker to cache an offline copy after the first visit.
 ## Run it
 
 For a quick local check, open `index.html` directly. Local saving, editing,
-imports, exports, previews, and PNG generation all work from a file URL.
+imports, and JSON downloads all work from a file URL.
 
 For offline caching and installable-app behavior during local development,
 serve this directory over HTTP once:
@@ -59,37 +59,40 @@ There is no build step and no runtime dependency, CDN, account, or backend.
 ## Included functionality
 
 - Paint by click/drag or touch/stylus, choose colors with keys `0`–`9`, flood
-  fill, draw filled rectangles, and copy/paste rectangular selections.
+  fill, and copy/paste rectangular selections. Each drawing tool has a short
+  instruction beside it.
 - Undo and redo document changes, including drawing strokes, transforms,
-  resizing, pair edits, imports, and metadata.
+  resizing, pair edits, and imports.
 - Resize every input and output independently from 1×1 through 30×30, with a
   warning before a shrink discards non-black cells.
 - Copy an input to its output; fill or clear a grid; rotate, flip, or shift it;
-  and optionally wrap pixels during shifts.
+  and optionally wrap pixels during shifts. Rotate, Flip, and Shift are under
+  **More grid tools** on each grid.
 - Add, duplicate, reorder, and remove training or test pairs. New pairs can use
   explicit defaults or inherit the previous pair's input/output dimensions.
 - Maintain multiple named, automatically saved drafts in the browser.
-- Record a task title, team identifier, rule explanation, and solvability notes
-  without putting non-standard fields into ARC task JSON.
 - Import standard ARC JSON, challenge JSON with omitted test outputs, or a full
   editor backup. Imports are validated before they replace the current task.
-- Preview the solver-facing puzzle or the completed answer view.
-- Check structure and receive authorship warnings before export.
-- Export canonical ARC JSON, a solver challenge without test answers, a private
-  answer key, a restorable editor backup, and puzzle/answer PNGs.
+- Use **Review & download JSON** to see all inputs and correct outputs,
+  including test answers. Review grid warnings, then choose **Confirm & download
+  JSON** to save one standard ARC task file.
+- Exported JSON contains only `train` and `test` pairs with `input` and `output`
+  grids; team names, explanations, and other submission details are handled
+  outside the editor.
 - Work from a static host, with an offline application cache after first load.
 
 The editor intentionally does not implement public share URLs or direct event
 submission. Both require a trusted backend contract, access policy, and data
-retention decision. Downloaded challenge/answer files are safer and usable now;
-submission can be added cleanly once the event endpoint is defined.
+retention decision. The editor produces a task JSON file for a separate
+submission process.
 
 ## Local-data behavior
 
 Drafts are stored in browser `localStorage`. Clearing site data removes them,
-so organizers should tell students to download an **Editor backup** periodically
-and before submission. The canonical task JSON excludes editor metadata; the
-backup preserves it.
+so download your task using **Review & download JSON** before leaving. The
+JSON can be imported to continue editing. Existing saved drafts and older
+editor backups are still readable, but submission metadata is no longer shown
+or exported.
 
 ## Test it
 
@@ -106,6 +109,8 @@ Before deploying, also open the hosted app in the same desktop and mobile
 browsers planned for the event and perform the short manual smoke test:
 
 1. Draw with mouse and touch, undo, redo, resize, and transform a grid.
-2. Download an editor backup, change the task, and re-import that backup.
-3. Open puzzle preview and download all JSON and PNG variants.
+2. Review and download task JSON, change the task, and re-import the JSON.
+3. Confirm the review shows test outputs, cancel it, edit a grid, and review
+   again before downloading. Check that Rotate, Flip, and Shift work under
+   **More grid tools**.
 4. Reload, confirm the draft persists, then go offline and reload again.

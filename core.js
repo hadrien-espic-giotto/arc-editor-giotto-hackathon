@@ -349,11 +349,6 @@
   function analyzeDocument(document) {
     validateDocument(document);
     const warnings = [];
-    const metadata = document.metadata;
-    if (!metadata.title.trim()) warnings.push("Task title is empty.");
-    if (!metadata.teamId.trim()) warnings.push("Team identifier is empty.");
-    if (!metadata.rule.trim()) warnings.push("Rule explanation is empty.");
-    if (!metadata.solvability.trim()) warnings.push("Solvability notes are empty.");
     let blankCount = 0;
     let unchangedTrainingPairs = 0;
     for (const section of ["train", "test"]) {
@@ -366,7 +361,7 @@
       if (gridsEqual(pair.input, pair.output)) unchangedTrainingPairs += 1;
     });
     if (blankCount) warnings.push(`${blankCount} grid${blankCount === 1 ? " is" : "s are"} entirely black.`);
-    if (unchangedTrainingPairs) warnings.push(`${unchangedTrainingPairs} training pair${unchangedTrainingPairs === 1 ? " has" : "s have"} identical input and output grids.`);
+    if (unchangedTrainingPairs) warnings.push(`${unchangedTrainingPairs} example${unchangedTrainingPairs === 1 ? " has" : "s have"} identical input and output grids.`);
     return {
       valid: true,
       trainCount: document.task.train.length,

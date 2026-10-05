@@ -1,4 +1,4 @@
-const CACHE_NAME = "giotto-arc-editor-v3";
+const CACHE_NAME = "giotto-arc-editor-v4";
 const APP_SHELL = [
   "./",
   "./index.html",

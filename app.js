@@ -20,20 +20,14 @@
     undo: document.getElementById("undo"),
     redo: document.getElementById("redo"),
     draftSelect: document.getElementById("draft-select"),
-    metadata: {
-      title: document.getElementById("meta-title"),
-      teamId: document.getElementById("meta-team"),
-      rule: document.getElementById("meta-rule"),
-      solvability: document.getElementById("meta-solvability"),
-    },
     defaultWidth: document.getElementById("default-width"),
     defaultHeight: document.getElementById("default-height"),
     inheritSize: document.getElementById("inherit-size"),
-    wrapShifts: document.getElementById("wrap-shifts"),
     exportDialog: document.getElementById("export-dialog"),
     exportReport: document.getElementById("export-report"),
-    previewDialog: document.getElementById("preview-dialog"),
     previewContent: document.getElementById("preview-content"),
+    downloadTask: document.getElementById("download-task"),
+    toolHelp: document.getElementById("tool-help"),
     shortcutsDialog: document.getElementById("shortcuts-dialog"),
   };
 
@@ -46,7 +40,7 @@
   let drawing = null;
   let selection = null;
   let copiedFragment = null;
-  let previewIncludesAnswers = false;
+  let reviewedTaskJSON = null;
 
   function createId() {
     if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") return globalThis.crypto.randomUUID();
@@ -131,7 +125,7 @@
     } catch (error) {
       elements.saveState.textContent = "Could not save locally";
       elements.saveState.classList.remove("saving");
-      showStatus("Local saving failed. Download an editor backup to avoid losing work.", "error");
+      showStatus("Local saving failed. Use Review & download JSON to save your work to a file.", "error");
     }
   }
 
@@ -232,7 +226,13 @@
       button.classList.toggle("selected", selected);
       button.setAttribute("aria-pressed", String(selected));
     });
-    showStatus(`${tool[0].toUpperCase()}${tool.slice(1)} tool selected.`);
+    const instructions = {
+      paint: "Paint: click or drag to color cells.",
+      fill: "Fill: click to recolor connected cells of the same color.",
+      select: "Select: drag over cells, copy them, then select a destination and paste.",
+    };
+    elements.toolHelp.textContent = instructions[tool];
+    showStatus(instructions[tool]);
   }
 
   function gridReferenceFromCell(cell) {
@@ -322,7 +322,7 @@
       changed: false,
     };
     if (activeTool === "paint") drawing.changed = paintReference(reference);
-    if (activeTool === "rectangle" || activeTool === "select") highlightRectangle(reference, reference, reference);
+    if (activeTool === "select") highlightRectangle(reference, reference, reference);
   }
 
   function handlePointerMove(event) {
@@ -334,7 +334,7 @@
     event.preventDefault();
     drawing.end = reference;
     if (drawing.tool === "paint") drawing.changed = paintReference(reference) || drawing.changed;
-    if (drawing.tool === "rectangle" || drawing.tool === "select") highlightRectangle(reference, drawing.start, reference);
+    if (drawing.tool === "select") highlightRectangle(reference, drawing.start, reference);
   }
 
   function finishPointerAction(event) {
@@ -346,14 +346,6 @@
         remember(action.before, "Painted stroke");
         showStatus("Painted stroke.", "success");
       }
-      return;
-    }
-    if (action.tool === "rectangle") {
-      setGrid(action.grid, Core.fillRectangle(getGrid(action.grid), action.start.row, action.start.column, action.end.row, action.end.column, selectedColor));
-      remember(action.before, "Painted rectangle");
-      selection = null;
-      renderPairs();
-      showStatus("Painted rectangle.", "success");
       return;
     }
     if (action.tool === "select") {
@@ -495,10 +487,14 @@
     const heading = document.createElement("div");
     heading.className = "grid-heading";
     const title = document.createElement("h3");
-    title.textContent = side === "input" ? "Input" : "Output";
+    title.textContent = side === "input" ? "Input" : section === "test" ? "Correct output (answer)" : "Correct output";
     const dimensions = document.createElement("div");
     dimensions.className = "grid-dimensions";
-    dimensions.append("W", dimensionControl(grid, reference, "width"), "H", dimensionControl(grid, reference, "height"));
+    for (const dimension of ["width", "height"]) {
+      const label = document.createElement("label");
+      label.append(dimension === "width" ? "Width " : "Height ", dimensionControl(grid, reference, dimension));
+      dimensions.appendChild(label);
+    }
     heading.append(title, dimensions);
 
     const actions = document.createElement("div");
@@ -508,10 +504,10 @@
         commit("Copied input to output", () => setGrid(reference, Core.cloneGrid(editorDocument.task[section][pairIndex].input)));
       }));
     }
-    actions.appendChild(actionButton("Fill all", "Fill the entire grid with the selected color", () => {
+    actions.appendChild(actionButton("Fill grid", "Fill the entire grid with the selected color", () => {
       commit("Filled grid", () => setGrid(reference, Core.fillGrid(grid, selectedColor)));
     }));
-    actions.appendChild(actionButton("Clear", "Clear this grid to black", () => {
+    actions.appendChild(actionButton("Clear grid", "Clear this grid to black", () => {
       if (!Core.isBlankGrid(grid) && !window.confirm("Clear every cell in this grid?")) return;
       commit("Cleared grid", () => setGrid(reference, Core.fillGrid(grid, 0)));
     }));
@@ -536,7 +532,23 @@
       ]),
     );
 
-    card.append(heading, createGridElement(grid, section, pairIndex, side), actions, transforms);
+    const moreTools = document.createElement("details");
+    moreTools.className = "more-grid-tools";
+    const moreToolsLabel = document.createElement("summary");
+    moreToolsLabel.textContent = "More grid tools";
+    const wrapLabel = document.createElement("label");
+    wrapLabel.className = "check-label shift-wrap-control";
+    const wrapInput = document.createElement("input");
+    wrapInput.type = "checkbox";
+    wrapInput.checked = workspace.settings.wrapShifts;
+    wrapInput.addEventListener("change", () => {
+      workspace.settings.wrapShifts = wrapInput.checked;
+      document.querySelectorAll(".shift-wrap-control input").forEach((input) => { input.checked = wrapInput.checked; });
+      saveWorkspace();
+    });
+    wrapLabel.append(wrapInput, "Wrap shifted cells around edges (all grids)");
+    moreTools.append(moreToolsLabel, transforms, wrapLabel);
+    card.append(heading, createGridElement(grid, section, pairIndex, side), actions, moreTools);
     return card;
   }
 
@@ -601,15 +613,10 @@
     applySelectionHighlight();
   }
 
-  function syncMetadata() {
-    Object.entries(elements.metadata).forEach(([field, input]) => { input.value = editorDocument.metadata[field]; });
-  }
-
   function syncSettings() {
     elements.defaultWidth.value = String(workspace.settings.defaultWidth);
     elements.defaultHeight.value = String(workspace.settings.defaultHeight);
     elements.inheritSize.checked = workspace.settings.inheritSize;
-    elements.wrapShifts.checked = workspace.settings.wrapShifts;
   }
 
   function renderDrafts() {
@@ -626,7 +633,6 @@
   }
 
   function renderAll() {
-    syncMetadata();
     syncSettings();
     renderDrafts();
     renderPairs();
@@ -731,7 +737,7 @@
   }
 
   function filenameBase() {
-    return Core.slugify([editorDocument.metadata.teamId, editorDocument.metadata.title].filter((value) => value.trim()).join("-"));
+    return Core.slugify(activeDraft().name);
   }
 
   function downloadBlob(content, filename, type = "application/json") {
@@ -752,24 +758,22 @@
     else dialog.setAttribute("open", "");
   }
 
-  function renderExportReport() {
+  function openExportDialog() {
+    reviewedTaskJSON = null;
+    elements.downloadTask.disabled = true;
+    elements.exportReport.replaceChildren();
+    elements.previewContent.replaceChildren();
     try {
       const report = Core.analyzeDocument(editorDocument);
-      elements.exportReport.replaceChildren();
-      const summary = document.createElement("div");
-      summary.className = "export-summary";
-      [[report.trainCount, "training pairs"], [report.testCount, "test pairs"], [report.gridCount, "grids"]].forEach(([value, label]) => {
-        const item = document.createElement("div");
-        item.className = "summary-item";
-        const strong = document.createElement("strong");
-        strong.textContent = String(value);
-        item.append(strong, label);
-        summary.appendChild(item);
-      });
-      elements.exportReport.appendChild(summary);
+      renderPreview();
+      reviewedTaskJSON = Core.serializeTask(editorDocument.task);
+      const valid = document.createElement("p");
+      valid.className = "valid-message";
+      valid.textContent = `JSON format is valid: ${report.trainCount} example${report.trainCount === 1 ? "" : "s"} and ${report.testCount} test${report.testCount === 1 ? "" : "s"}.`;
+      elements.exportReport.appendChild(valid);
       if (report.warnings.length) {
         const heading = document.createElement("p");
-        heading.textContent = "The task is structurally valid, with these review warnings:";
+        heading.textContent = "Before downloading, check these details. You can still download if they are intentional.";
         const list = document.createElement("ul");
         list.className = "warning-list";
         report.warnings.forEach((warning) => {
@@ -778,26 +782,36 @@
           list.appendChild(item);
         });
         elements.exportReport.append(heading, list);
-      } else {
-        const valid = document.createElement("p");
-        valid.className = "valid-message";
-        valid.textContent = "The task and metadata passed all checks.";
-        elements.exportReport.appendChild(valid);
       }
+      elements.downloadTask.disabled = false;
     } catch (error) {
-      elements.exportReport.textContent = `Validation failed: ${error.message}`;
+      elements.exportReport.textContent = `Cannot download this task: ${error.message}`;
     }
+    openDialog(elements.exportDialog);
   }
 
-  function openExportDialog() {
-    renderExportReport();
-    openDialog(elements.exportDialog);
+  function confirmDownload() {
+    if (!elements.exportDialog.open || !reviewedTaskJSON || elements.downloadTask.disabled) return;
+    try {
+      const currentTaskJSON = Core.serializeTask(editorDocument.task);
+      if (currentTaskJSON !== reviewedTaskJSON) {
+        openExportDialog();
+        showStatus("The task changed. Review the updated preview before downloading.");
+        return;
+      }
+      downloadBlob(reviewedTaskJSON, `${filenameBase()}.json`);
+      elements.exportDialog.close();
+    } catch (error) {
+      reviewedTaskJSON = null;
+      elements.downloadTask.disabled = true;
+      elements.exportReport.textContent = `Cannot download this task: ${error.message}`;
+    }
   }
 
   function previewGrid(grid) {
     const element = document.createElement("div");
     element.className = "preview-grid";
-    element.style.gridTemplateColumns = `repeat(${grid[0].length}, 20px)`;
+    element.style.gridTemplateColumns = `repeat(${grid[0].length}, var(--preview-cell-size))`;
     grid.forEach((row) => row.forEach((color) => {
       const cell = document.createElement("div");
       cell.className = "preview-cell";
@@ -813,7 +827,7 @@
       const section = document.createElement("section");
       section.className = "preview-section";
       const heading = document.createElement("h3");
-      heading.textContent = sectionName === "train" ? "Training examples" : "Test cases";
+      heading.textContent = sectionName === "train" ? "Examples of your rule" : "Tests and correct answers";
       section.appendChild(heading);
       editorDocument.task[sectionName].forEach((pair, index) => {
         const row = document.createElement("div");
@@ -824,109 +838,25 @@
         const arrow = document.createElement("span");
         arrow.textContent = "→";
         arrow.setAttribute("aria-hidden", "true");
-        row.append(label, previewGrid(pair.input), arrow);
-        if (sectionName === "test" && !previewIncludesAnswers) {
-          const hidden = document.createElement("div");
-          hidden.className = "hidden-answer";
-          hidden.textContent = "?";
-          hidden.setAttribute("aria-label", "Hidden test output");
-          row.appendChild(hidden);
-        } else row.appendChild(previewGrid(pair.output));
+        const input = document.createElement("div");
+        input.className = "preview-grid-card";
+        const inputLabel = document.createElement("h3");
+        inputLabel.textContent = "Input";
+        input.append(inputLabel, previewGrid(pair.input));
+        const output = document.createElement("div");
+        output.className = "preview-grid-card";
+        const outputLabel = document.createElement("h3");
+        outputLabel.textContent = sectionName === "test" ? "Correct output (answer)" : "Correct output";
+        output.append(outputLabel, previewGrid(pair.output));
+        row.append(label, input, arrow, output);
         section.appendChild(row);
       });
       elements.previewContent.appendChild(section);
     }
-    document.getElementById("preview-puzzle").classList.toggle("selected", !previewIncludesAnswers);
-    document.getElementById("preview-puzzle").setAttribute("aria-pressed", String(!previewIncludesAnswers));
-    document.getElementById("preview-answer").classList.toggle("selected", previewIncludesAnswers);
-    document.getElementById("preview-answer").setAttribute("aria-pressed", String(previewIncludesAnswers));
-  }
-
-  function openPreview() {
-    previewIncludesAnswers = false;
-    renderPreview();
-    openDialog(elements.previewDialog);
-  }
-
-  function gridPixelSize(grid, cellSize, gap) {
-    return { width: grid[0].length * cellSize + (grid[0].length - 1) * gap, height: grid.length * cellSize + (grid.length - 1) * gap };
-  }
-
-  function renderPngCanvas(includeAnswers) {
-    const cellSize = 24;
-    const gap = 1;
-    const margin = 28;
-    const between = 46;
-    const labelHeight = 28;
-    const rows = [];
-    for (const section of ["train", "test"]) {
-      editorDocument.task[section].forEach((pair, index) => {
-        const inputSize = gridPixelSize(pair.input, cellSize, gap);
-        const outputSize = section === "test" && !includeAnswers ? { width: 110, height: 110 } : gridPixelSize(pair.output, cellSize, gap);
-        rows.push({ section, index, pair, inputSize, outputSize, height: Math.max(inputSize.height, outputSize.height) + labelHeight + 22 });
-      });
-    }
-    const contentWidth = Math.max(...rows.map((row) => row.inputSize.width + between + row.outputSize.width));
-    const titleHeight = 54;
-    const canvas = document.createElement("canvas");
-    canvas.width = contentWidth + margin * 2;
-    canvas.height = titleHeight + margin + rows.reduce((sum, row) => sum + row.height, 0);
-    const context = canvas.getContext("2d");
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.fillStyle = "#172033";
-    context.font = "700 24px sans-serif";
-    context.fillText(editorDocument.metadata.title.trim() || "ARC Task", margin, 34);
-    context.font = "14px sans-serif";
-    context.fillStyle = "#657086";
-    context.fillText(includeAnswers ? "Answer view" : "Puzzle view", margin, 56);
-
-    function drawGrid(grid, x, y) {
-      grid.forEach((gridRow, rowIndex) => gridRow.forEach((color, columnIndex) => {
-        context.fillStyle = COLORS[color];
-        context.fillRect(x + columnIndex * (cellSize + gap), y + rowIndex * (cellSize + gap), cellSize, cellSize);
-      }));
-      const size = gridPixelSize(grid, cellSize, gap);
-      context.strokeStyle = "#313746";
-      context.lineWidth = 2;
-      context.strokeRect(x - 1, y - 1, size.width + 2, size.height + 2);
-    }
-
-    let y = titleHeight + margin;
-    rows.forEach((row) => {
-      context.fillStyle = "#172033";
-      context.font = "700 15px sans-serif";
-      context.fillText(`${row.section === "train" ? "Training" : "Test"} ${row.index + 1} · Input`, margin, y + 15);
-      const outputX = margin + row.inputSize.width + between;
-      context.fillText("Output", outputX, y + 15);
-      const gridY = y + labelHeight;
-      drawGrid(row.pair.input, margin, gridY);
-      if (row.section === "test" && !includeAnswers) {
-        context.setLineDash([7, 5]);
-        context.strokeStyle = "#aeb7c8";
-        context.strokeRect(outputX, gridY, 108, 108);
-        context.setLineDash([]);
-        context.fillStyle = "#aeb7c8";
-        context.font = "700 42px sans-serif";
-        context.fillText("?", outputX + 41, gridY + 69);
-      } else drawGrid(row.pair.output, outputX, gridY);
-      y += row.height;
-    });
-    return canvas;
-  }
-
-  function downloadPng(includeAnswers) {
-    const canvas = renderPngCanvas(includeAnswers);
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        showStatus("PNG export failed in this browser.", "error");
-        return;
-      }
-      downloadBlob(blob, `${filenameBase()}-${includeAnswers ? "answer" : "puzzle"}.png`, "image/png");
-    }, "image/png");
   }
 
   function handleKeyboard(event) {
+    if (document.querySelector("dialog[open]")) return;
     const editingText = event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement;
     const modifier = event.ctrlKey || event.metaKey;
     if (modifier && event.key.toLowerCase() === "z") {
@@ -951,18 +881,11 @@
     }
     if (editingText) return;
     if (/^[0-9]$/.test(event.key)) selectColor(Number(event.key));
-    if ({ p: "paint", f: "fill", r: "rectangle", s: "select" }[event.key.toLowerCase()]) selectTool({ p: "paint", f: "fill", r: "rectangle", s: "select" }[event.key.toLowerCase()]);
+    if ({ p: "paint", f: "fill", s: "select" }[event.key.toLowerCase()]) selectTool({ p: "paint", f: "fill", s: "select" }[event.key.toLowerCase()]);
     if (event.key === "?") openDialog(elements.shortcutsDialog);
     if (event.key === "Escape" && selection) clearSelection();
   }
 
-  Object.entries(elements.metadata).forEach(([field, input]) => {
-    input.addEventListener("change", () => {
-      const value = input.value;
-      commit(`Updated ${field}`, () => { editorDocument.metadata[field] = value; }, { render: false, status: false });
-      renderDrafts();
-    });
-  });
   document.querySelectorAll("[data-tool]").forEach((button) => button.addEventListener("click", () => selectTool(button.dataset.tool)));
   document.addEventListener("pointermove", handlePointerMove, { passive: false });
   document.addEventListener("pointerup", finishPointerAction);
@@ -987,10 +910,7 @@
     event.target.value = "";
   });
   document.getElementById("open-export").addEventListener("click", openExportDialog);
-  document.getElementById("open-preview").addEventListener("click", openPreview);
   document.getElementById("open-shortcuts").addEventListener("click", () => openDialog(elements.shortcutsDialog));
-  document.getElementById("preview-puzzle").addEventListener("click", () => { previewIncludesAnswers = false; renderPreview(); });
-  document.getElementById("preview-answer").addEventListener("click", () => { previewIncludesAnswers = true; renderPreview(); });
   elements.defaultWidth.addEventListener("change", () => {
     const value = Number(elements.defaultWidth.value);
     if (!validDimension(value)) { elements.defaultWidth.value = String(workspace.settings.defaultWidth); return; }
@@ -1004,14 +924,12 @@
     saveWorkspace();
   });
   elements.inheritSize.addEventListener("change", () => { workspace.settings.inheritSize = elements.inheritSize.checked; saveWorkspace(); });
-  elements.wrapShifts.addEventListener("change", () => { workspace.settings.wrapShifts = elements.wrapShifts.checked; saveWorkspace(); });
 
-  document.getElementById("download-task").addEventListener("click", () => downloadBlob(Core.serializeTask(editorDocument.task), `${filenameBase()}.json`));
-  document.getElementById("download-challenge").addEventListener("click", () => downloadBlob(JSON.stringify(Core.createChallengeTask(editorDocument.task), null, 2), `${filenameBase()}-challenge.json`));
-  document.getElementById("download-answers").addEventListener("click", () => downloadBlob(JSON.stringify(Core.createAnswerKey(editorDocument.task), null, 2), `${filenameBase()}-answer-key.json`));
-  document.getElementById("download-backup").addEventListener("click", () => downloadBlob(Core.serializeDocument(editorDocument), `${filenameBase()}-editor-backup.json`));
-  document.getElementById("download-puzzle-png").addEventListener("click", () => downloadPng(false));
-  document.getElementById("download-answer-png").addEventListener("click", () => downloadPng(true));
+  elements.downloadTask.addEventListener("click", confirmDownload);
+  elements.exportDialog.addEventListener("close", () => {
+    reviewedTaskJSON = null;
+    elements.downloadTask.disabled = true;
+  });
 
   renderPalette();
   renderAll();

@@ -16,16 +16,15 @@
       <div>
         <p class="eyebrow">Giotto Hackathon</p>
         <h1>ARC Task Editor</h1>
-        <p class="subtitle">Create one task, validate it, and export standard ARC JSON.</p>
+        <p class="subtitle">Draw examples, add a test and its answer, then download your task as JSON.</p>
       </div>
       <div class="header-actions" aria-label="Document actions">
         <span id="save-state" class="save-state" aria-live="polite">Saved locally</span>
         <button id="undo" class="button button-secondary" type="button" title="Undo (Ctrl/⌘+Z)">Undo</button>
         <button id="redo" class="button button-secondary" type="button" title="Redo (Ctrl/⌘+Shift+Z)">Redo</button>
-        <label class="button button-secondary file-button" for="import-file">Import</label>
+        <label class="button button-secondary file-button" for="import-file">Import JSON</label>
         <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json">
-        <button id="open-preview" class="button button-secondary" type="button">Preview</button>
-        <button id="open-export" class="button button-primary" type="button">Check &amp; export</button>
+        <button id="open-export" class="button button-primary" type="button">Review &amp; download JSON</button>
         <button id="open-shortcuts" class="button button-secondary keybinds-button" type="button" title="Open keybinds (?)">Keybinds</button>
       </div>
     </header>
@@ -45,52 +44,35 @@
         </div>
       </section>
 
-      <details class="metadata card" open>
-        <summary class="metadata-summary">
-          <div>
-            <p class="section-kicker">Submission details</p>
-            <h2>Task details</h2>
-          </div>
-          <span class="metadata-hint">Saved in editor backups, not ARC JSON</span>
-        </summary>
-        <div class="metadata-grid">
-          <label>Task title <input id="meta-title" type="text" autocomplete="off" placeholder="Moving squares"></label>
-          <label>Team identifier <input id="meta-team" type="text" autocomplete="off" placeholder="Team 07"></label>
-          <label>Rule explanation <textarea id="meta-rule" rows="2" placeholder="Describe the transformation in plain language."></textarea></label>
-          <label>Why it is solvable <textarea id="meta-solvability" rows="2" placeholder="Explain why the examples determine one answer."></textarea></label>
-        </div>
-      </details>
-
       <section class="toolbar card" aria-labelledby="tools-heading">
         <div class="tool-block">
-          <h2 id="tools-heading">Palette</h2>
+          <h2 id="tools-heading">1. Choose a color</h2>
           <div id="palette" class="palette" aria-label="ARC colors"></div>
         </div>
         <div class="tool-block">
-          <h2>Drawing tool</h2>
+          <h2>2. Choose a tool</h2>
           <div id="drawing-tools" class="segmented" role="group" aria-label="Drawing tool">
             <button class="tool-button selected" data-tool="paint" type="button" aria-pressed="true" title="Paint (P)">Paint</button>
             <button class="tool-button" data-tool="fill" type="button" aria-pressed="false" title="Flood fill (F)">Fill</button>
-            <button class="tool-button" data-tool="rectangle" type="button" aria-pressed="false" title="Rectangle (R)">Rectangle</button>
             <button class="tool-button" data-tool="select" type="button" aria-pressed="false" title="Select (S)">Select</button>
           </div>
+          <p id="tool-help" class="tool-help" aria-live="polite">Paint: click or drag to color cells.</p>
         </div>
         <div class="tool-block">
-          <h2>Selection</h2>
+          <h2>Selected cells</h2>
           <div class="button-row">
-            <button id="copy-selection" class="button button-secondary button-small" type="button">Copy</button>
-            <button id="paste-selection" class="button button-secondary button-small" type="button">Paste</button>
+            <button id="copy-selection" class="button button-secondary button-small" type="button">Copy cells</button>
+            <button id="paste-selection" class="button button-secondary button-small" type="button">Paste cells</button>
             <button id="clear-selection" class="button button-secondary button-small" type="button">Deselect</button>
           </div>
         </div>
         <div class="tool-block pair-defaults">
-          <h2>New pair size</h2>
+          <h2>New example/test size</h2>
           <div class="inline-fields">
-            <label>W <input id="default-width" class="dimension-input" type="number" min="1" max="30" value="8"></label>
-            <label>H <input id="default-height" class="dimension-input" type="number" min="1" max="30" value="8"></label>
+            <label>Width <input id="default-width" class="dimension-input" type="number" min="1" max="30" value="8"></label>
+            <label>Height <input id="default-height" class="dimension-input" type="number" min="1" max="30" value="8"></label>
           </div>
-          <label class="check-label"><input id="inherit-size" type="checkbox" checked> Inherit previous pair sizes</label>
-          <label class="check-label"><input id="wrap-shifts" type="checkbox"> Wrap shifted pixels</label>
+          <label class="check-label"><input id="inherit-size" type="checkbox" checked> Use previous input/output sizes</label>
         </div>
       </section>
 
@@ -98,9 +80,10 @@
         <div class="section-heading">
           <div>
             <p class="section-kicker">Step 1 · Examples</p>
-            <h2 id="training-heading">Training examples</h2>
+            <h2 id="training-heading">Examples of your rule</h2>
+            <p class="section-help">Show the same rule in each example: draw the input and the correct output.</p>
           </div>
-          <button id="add-train" class="button button-secondary" type="button">Add training pair</button>
+          <button id="add-train" class="button button-secondary" type="button">Add example</button>
         </div>
         <div id="train-pairs" class="pairs"></div>
       </section>
@@ -109,9 +92,10 @@
         <div class="section-heading">
           <div>
             <p class="section-kicker">Step 2 · Challenge</p>
-            <h2 id="testing-heading">Test case</h2>
+            <h2 id="testing-heading">Test and correct answer</h2>
+            <p class="section-help">Draw a new input and its correct output using the same rule. Both will be included in the JSON.</p>
           </div>
-          <button id="add-test" class="button button-secondary" type="button">Add test pair</button>
+          <button id="add-test" class="button button-secondary" type="button">Add test</button>
         </div>
         <div id="test-pairs" class="pairs"></div>
       </section>
@@ -122,55 +106,22 @@
       <p>Works offline · ARC grids 1–30 · Colors 0–9</p>
     </footer>
 
-    <dialog id="export-dialog" class="modal">
-      <form method="dialog" class="modal-card">
+    <dialog id="export-dialog" class="modal review-modal" aria-labelledby="review-heading" aria-describedby="review-help">
+      <form method="dialog" class="modal-card review-card">
         <div class="modal-heading">
-          <div><p class="section-kicker">Validation</p><h2>Check and export</h2></div>
-          <button class="button button-icon" value="cancel" aria-label="Close export dialog">×</button>
+          <div><p class="section-kicker">Final step</p><h2 id="review-heading">Review your task</h2></div>
+          <button class="button button-icon" value="cancel" aria-label="Close task review">×</button>
         </div>
-        <div id="export-report"></div>
-        <div class="export-groups">
-          <section>
-            <h3>Canonical submission</h3>
-            <p>Complete standard ARC task, including expected test outputs.</p>
-            <button id="download-task" class="button button-primary" type="button">Download task JSON</button>
-          </section>
-          <section>
-            <h3>Solver and jury files</h3>
-            <p>Challenge hides test answers; answer key contains only private outputs.</p>
-            <div class="button-row">
-              <button id="download-challenge" class="button button-secondary" type="button">Challenge JSON</button>
-              <button id="download-answers" class="button button-secondary" type="button">Answer key JSON</button>
-            </div>
-          </section>
-          <section>
-            <h3>Images</h3>
-            <p>Clean PNGs for discussion, presentation, or manual checking.</p>
-            <div class="button-row">
-              <button id="download-puzzle-png" class="button button-secondary" type="button">Puzzle PNG</button>
-              <button id="download-answer-png" class="button button-secondary" type="button">Answer PNG</button>
-            </div>
-          </section>
-          <section>
-            <h3>Editor backup</h3>
-            <p>Includes metadata and can be imported back into this editor.</p>
-            <button id="download-backup" class="button button-secondary" type="button">Editor backup</button>
-          </section>
-        </div>
-      </form>
-    </dialog>
-
-    <dialog id="preview-dialog" class="modal preview-modal">
-      <form method="dialog" class="modal-card preview-card">
-        <div class="modal-heading">
-          <div><p class="section-kicker">Solver view</p><h2>Task preview</h2></div>
-          <button class="button button-icon" value="cancel" aria-label="Close preview">×</button>
-        </div>
-        <div class="segmented preview-switch" role="group" aria-label="Preview mode">
-          <button id="preview-puzzle" class="tool-button selected" type="button" aria-pressed="true">Puzzle</button>
-          <button id="preview-answer" class="tool-button" type="button" aria-pressed="false">With answers</button>
-        </div>
+        <p id="review-help">Check every input and output below, including the test answers. Then confirm to download one JSON file.</p>
+        <div id="export-report" role="status"></div>
         <div id="preview-content" class="preview-content"></div>
+        <div class="review-actions">
+          <p>The JSON includes all examples, test inputs, and correct test outputs.</p>
+          <div class="button-row">
+            <button class="button button-secondary" value="cancel">Back to editing</button>
+            <button id="download-task" class="button button-primary" type="button" disabled>Confirm &amp; download JSON</button>
+          </div>
+        </div>
       </form>
     </dialog>
 
@@ -182,7 +133,7 @@
         </div>
         <dl class="shortcut-list">
           <div><dt><kbd>0–9</kbd></dt><dd>Select the matching palette color</dd></div>
-          <div><dt><kbd>P</kbd> <kbd>F</kbd> <kbd>R</kbd> <kbd>S</kbd></dt><dd>Switch to Paint, Fill, Rectangle, or Select</dd></div>
+          <div><dt><kbd>P</kbd> <kbd>F</kbd> <kbd>S</kbd></dt><dd>Switch to Paint, Fill, or Select</dd></div>
           <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>Z</kbd></dt><dd>Undo the last change</dd></div>
           <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></dt><dd>Redo the last change; <kbd>Ctrl</kbd> + <kbd>Y</kbd> also works</dd></div>
           <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>C</kbd></dt><dd>Copy the selected cells</dd></div>

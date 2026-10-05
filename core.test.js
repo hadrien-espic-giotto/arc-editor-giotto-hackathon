@@ -86,12 +86,13 @@ test("challenge and answer exports separate private outputs", () => {
   assert.deepEqual(task.test[0].output, [[8]]);
 });
 
-test("analysis reports metadata and content warnings", () => {
+test("analysis reports grid warnings without asking for submission details", () => {
   const report = Core.analyzeDocument(Core.createDocument(Core.createTask(1, 1, 1, 1)));
   assert.equal(report.valid, true);
   assert.equal(report.trainCount, 1);
   assert.equal(report.testCount, 1);
-  assert.ok(report.warnings.some((warning) => warning.includes("title")));
+  assert.equal(report.warnings.length, 2);
+  assert.ok(report.warnings.some((warning) => warning.includes("identical")));
   assert.ok(report.warnings.some((warning) => warning.includes("entirely black")));
 });
 
