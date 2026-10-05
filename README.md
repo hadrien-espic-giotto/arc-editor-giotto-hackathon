@@ -70,7 +70,10 @@ There is no build step and no runtime dependency, CDN, account, or backend.
   **More grid tools** on each grid.
 - Add, duplicate, reorder, and remove training or test pairs. New pairs can use
   explicit defaults or inherit the previous pair's input/output dimensions.
-- Maintain multiple named, automatically saved drafts in the browser.
+- Save editing automatically in this browser and resume the current task when
+  reopening the page. **New task** starts a fresh task without deleting any work;
+  **Recover previous task** opens earlier tasks, with timestamps and thumbnails.
+  If saving fails, starting or recovering a task is blocked to protect current work.
 - Import standard ARC JSON, challenge JSON with omitted test outputs, or a full
   editor backup. Imports are validated before they replace the current task.
 - Use **Review & download JSON** to see all inputs and correct outputs,
@@ -88,8 +91,12 @@ submission process.
 
 ## Local-data behavior
 
-Drafts are stored in browser `localStorage`. Clearing site data removes them,
-so download your task using **Review & download JSON** before leaving. The
+Tasks are saved in browser `localStorage`, including each painted cell and
+when the page is hidden or closed. **New task** keeps all previous tasks available
+under **Recover previous task**; recovering also keeps the task you switch away
+from. Existing drafts from the older draft manager remain recoverable.
+
+Clearing site data removes these browser saves, so download your task using **Review & download JSON** before leaving. The
 JSON can be imported to continue editing. Existing saved drafts and older
 editor backups are still readable, but submission metadata is no longer shown
 or exported.
@@ -113,4 +120,7 @@ browsers planned for the event and perform the short manual smoke test:
 3. Confirm the review shows test outputs, cancel it, edit a grid, and review
    again before downloading. Check that Rotate, Flip, and Shift work under
    **More grid tools**.
-4. Reload, confirm the draft persists, then go offline and reload again.
+4. Start a new task, recover the previous task, and confirm both are still
+   available after reloading. Navigate away during an unfinished paint stroke
+   and confirm the stroke persists when returning.
+5. Go offline and reload again.

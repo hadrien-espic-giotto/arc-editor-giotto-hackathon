@@ -30,17 +30,14 @@
     </header>
 
     <main id="task-content">
-      <section class="draft-bar card" aria-labelledby="draft-heading">
+      <section class="task-bar card" aria-labelledby="task-heading">
         <div>
-          <h2 id="draft-heading">Draft</h2>
-          <p>Saved in this browser</p>
+          <h2 id="task-heading">Your task</h2>
+          <p>Saved automatically in this browser. Starting a new task keeps your previous work.</p>
         </div>
-        <select id="draft-select" class="select-control" aria-label="Active draft"></select>
         <div class="button-row">
-          <button id="new-draft" class="button button-secondary button-small" type="button">New</button>
-          <button id="duplicate-draft" class="button button-secondary button-small" type="button">Duplicate</button>
-          <button id="rename-draft" class="button button-secondary button-small" type="button">Rename</button>
-          <button id="delete-draft" class="button button-danger button-small" type="button">Delete</button>
+          <button id="recover-task" class="button button-secondary" type="button" hidden>Recover previous task</button>
+          <button id="new-task" class="button button-secondary" type="button">New task</button>
         </div>
       </section>
 
@@ -121,6 +118,20 @@
             <button class="button button-secondary" value="cancel">Back to editing</button>
             <button id="download-task" class="button button-primary" type="button" disabled>Confirm &amp; download JSON</button>
           </div>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="recovery-dialog" class="modal recovery-modal" aria-labelledby="recovery-heading" aria-describedby="recovery-help">
+      <form method="dialog" class="modal-card">
+        <div class="modal-heading">
+          <div><p class="section-kicker">Automatic saves</p><h2 id="recovery-heading">Recover a saved task</h2></div>
+          <button class="button button-icon" value="cancel" aria-label="Close saved tasks">×</button>
+        </div>
+        <p id="recovery-help">Open a previous task to continue editing it. Your current task stays saved too.</p>
+        <div id="recovery-list" class="recovery-list"></div>
+        <div class="button-row recovery-actions">
+          <button class="button button-secondary" value="cancel">Back to editing</button>
         </div>
       </form>
     </dialog>

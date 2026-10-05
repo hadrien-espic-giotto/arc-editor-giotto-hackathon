@@ -19,7 +19,10 @@
     testPairs: document.getElementById("test-pairs"),
     undo: document.getElementById("undo"),
     redo: document.getElementById("redo"),
-    draftSelect: document.getElementById("draft-select"),
+    recoverTask: document.getElementById("recover-task"),
+    recoveryDialog: document.getElementById("recovery-dialog"),
+    recoveryList: document.getElementById("recovery-list"),
+    recoveryHelp: document.getElementById("recovery-help"),
     defaultWidth: document.getElementById("default-width"),
     defaultHeight: document.getElementById("default-height"),
     inheritSize: document.getElementById("inherit-size"),
@@ -47,7 +50,7 @@
     return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
   }
 
-  function newDraft(name = "Untitled task", documentValue = Core.createDocument()) {
+  function newDraft(name = "Task 1", documentValue = Core.createDocument()) {
     return { id: createId(), name, updatedAt: new Date().toISOString(), document: Core.cloneDocument(documentValue) };
   }
 
@@ -120,12 +123,15 @@
       draft.document = Core.cloneDocument(editorDocument);
       draft.updatedAt = new Date().toISOString();
       localStorage.setItem(WORKSPACE_KEY, JSON.stringify(workspace));
-      elements.saveState.textContent = "Saved locally";
-      elements.saveState.classList.remove("saving");
+      elements.saveState.textContent = "Saved automatically";
+      elements.saveState.classList.remove("saving", "error");
+      return true;
     } catch (error) {
-      elements.saveState.textContent = "Could not save locally";
+      elements.saveState.textContent = "Autosave failed — download JSON to keep your work";
       elements.saveState.classList.remove("saving");
+      elements.saveState.classList.add("error");
       showStatus("Local saving failed. Use Review & download JSON to save your work to a file.", "error");
+      return false;
     }
   }
 
@@ -267,6 +273,7 @@
       cell.style.background = COLORS[selectedColor];
       cell.setAttribute("aria-label", `Row ${reference.row + 1}, column ${reference.column + 1}, ${COLOR_NAMES[selectedColor]} (${selectedColor})`);
     }
+    saveWorkspace();
     return true;
   }
 
@@ -619,22 +626,70 @@
     elements.inheritSize.checked = workspace.settings.inheritSize;
   }
 
-  function renderDrafts() {
-    elements.draftSelect.replaceChildren();
-    Object.values(workspace.drafts)
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .forEach((draft) => {
-        const option = document.createElement("option");
-        option.value = draft.id;
-        option.textContent = draft.name;
-        option.selected = draft.id === workspace.activeId;
-        elements.draftSelect.appendChild(option);
+  function savedTasks() {
+    return Object.values(workspace.drafts)
+      .filter((draft) => draft.id !== workspace.activeId)
+      .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  }
+
+  function renderTaskControls() {
+    elements.recoverTask.hidden = savedTasks().length === 0;
+  }
+
+  function renderRecovery() {
+    elements.recoveryList.replaceChildren();
+    savedTasks().forEach((draft) => {
+      const row = document.createElement("article");
+      row.className = "recovery-item";
+      const details = document.createElement("div");
+      details.className = "recovery-details";
+      const title = document.createElement("h3");
+      title.textContent = draft.name;
+      const saved = document.createElement("p");
+      const date = new Date(draft.updatedAt);
+      const timestamp = date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+      const task = draft.document.task;
+      saved.textContent = `Last saved ${timestamp} · ${task.train.length} example${task.train.length === 1 ? "" : "s"} · ${task.test.length} test${task.test.length === 1 ? "" : "s"}`;
+      details.append(title, saved);
+      const thumbnails = document.createElement("div");
+      thumbnails.className = "recovery-thumbnails";
+      thumbnails.setAttribute("aria-label", "First example: input and correct output");
+      [task.train[0].input, task.train[0].output].forEach((grid, index) => {
+        const thumbnailCard = document.createElement("div");
+        thumbnailCard.className = "recovery-thumbnail";
+        const label = document.createElement("span");
+        label.textContent = index === 0 ? "Input" : "Output";
+        const thumbnail = previewGrid(grid);
+        thumbnail.style.setProperty("--preview-cell-size", `${Math.min(10, 100 / Math.max(grid.length, grid[0].length))}px`);
+        thumbnailCard.append(label, thumbnail);
+        thumbnails.appendChild(thumbnailCard);
       });
+      const restore = actionButton("Open this task", `Open saved task ${draft.name}`, () => {
+        if (!activateDraft(draft)) {
+          elements.recoveryHelp.textContent = "Your current work could not be saved, so it has been kept open. Go back to editing and download JSON to keep it before opening another task.";
+          elements.recoveryHelp.classList.add("error");
+          return;
+        }
+        elements.recoveryDialog.close();
+        showStatus("Saved task recovered. Your other work is still available under Recover previous task.", "success");
+      });
+      row.append(details, thumbnails, restore);
+      elements.recoveryList.appendChild(row);
+    });
+  }
+
+  function openRecovery() {
+    elements.recoveryHelp.textContent = "Open a previous task to continue editing it. Your current task stays saved too.";
+    elements.recoveryHelp.classList.remove("error");
+    finishPendingStroke();
+    saveWorkspace();
+    renderRecovery();
+    openDialog(elements.recoveryDialog);
   }
 
   function renderAll() {
     syncSettings();
-    renderDrafts();
+    renderTaskControls();
     renderPairs();
     updateHistoryButtons();
   }
@@ -655,56 +710,40 @@
     commit(`Added ${section === "train" ? "training" : "test"} pair`, () => editorDocument.task[section].push(createPairForSection(section)));
   }
 
-  function switchDraft(id) {
-    if (!workspace.drafts[id] || id === workspace.activeId) return;
-    saveWorkspace();
-    workspace.activeId = id;
-    editorDocument = Core.cloneDocument(activeDraft().document);
+  function finishPendingStroke() {
+    if (drawing) finishPointerAction({ pointerId: drawing.pointerId });
+  }
+
+  function activateDraft(draft) {
+    finishPendingStroke();
+    if (!saveWorkspace()) return false;
+    const previousId = workspace.activeId;
+    const previousDocument = editorDocument;
+    const isNew = !workspace.drafts[draft.id];
+    workspace.drafts[draft.id] = draft;
+    workspace.activeId = draft.id;
+    editorDocument = Core.cloneDocument(draft.document);
+    if (!saveWorkspace()) {
+      workspace.activeId = previousId;
+      editorDocument = previousDocument;
+      if (isNew) delete workspace.drafts[draft.id];
+      return false;
+    }
     historyPast = [];
     historyFuture = [];
     selection = null;
     copiedFragment = null;
-    saveWorkspace();
     renderAll();
-    showStatus(`Opened ${activeDraft().name}.`, "success");
+    return true;
   }
 
-  function addDraft(duplicate = false) {
-    const suggested = duplicate ? `${activeDraft().name} copy` : `Task ${Object.keys(workspace.drafts).length + 1}`;
-    const name = window.prompt("Draft name:", suggested);
-    if (!name || !name.trim()) return;
-    const documentValue = duplicate ? editorDocument : Core.createDocument(Core.createTask(3, 1, workspace.settings.defaultWidth, workspace.settings.defaultHeight));
-    const draft = newDraft(name.trim(), documentValue);
-    workspace.drafts[draft.id] = draft;
-    saveWorkspace();
-    switchDraft(draft.id);
-  }
-
-  function renameDraft() {
-    const name = window.prompt("Draft name:", activeDraft().name);
-    if (!name || !name.trim()) return;
-    activeDraft().name = name.trim();
-    saveWorkspace();
-    renderDrafts();
-    showStatus("Draft renamed.", "success");
-  }
-
-  function deleteDraft() {
-    const ids = Object.keys(workspace.drafts);
-    if (ids.length === 1) {
-      showStatus("At least one local draft must remain.", "error");
-      return;
+  function startNewTask() {
+    const numbers = Object.values(workspace.drafts).map((draft) => Number((/^Task (\d+)$/.exec(draft.name) || [])[1]) || 0);
+    const name = `Task ${Math.max(0, ...numbers) + 1}`;
+    const task = Core.createTask(3, 1, workspace.settings.defaultWidth, workspace.settings.defaultHeight);
+    if (activateDraft(newDraft(name, Core.createDocument(task)))) {
+      showStatus("New task started. Use Recover previous task if you meant to keep editing your previous work.", "success");
     }
-    if (!window.confirm(`Delete the local draft “${activeDraft().name}”?`)) return;
-    delete workspace.drafts[workspace.activeId];
-    workspace.activeId = Object.keys(workspace.drafts)[0];
-    editorDocument = Core.cloneDocument(activeDraft().document);
-    historyPast = [];
-    historyFuture = [];
-    selection = null;
-    saveWorkspace();
-    renderAll();
-    showStatus("Draft deleted.", "success");
   }
 
   function importFile(file) {
@@ -890,15 +929,22 @@
   document.addEventListener("pointermove", handlePointerMove, { passive: false });
   document.addEventListener("pointerup", finishPointerAction);
   document.addEventListener("pointercancel", finishPointerAction);
-  window.addEventListener("blur", () => { if (drawing) finishPointerAction({ pointerId: drawing.pointerId }); });
+  window.addEventListener("blur", finishPendingStroke);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      finishPendingStroke();
+      saveWorkspace();
+    }
+  });
+  window.addEventListener("pagehide", () => {
+    finishPendingStroke();
+    saveWorkspace();
+  });
   document.addEventListener("keydown", handleKeyboard);
   elements.undo.addEventListener("click", undo);
   elements.redo.addEventListener("click", redo);
-  elements.draftSelect.addEventListener("change", () => switchDraft(elements.draftSelect.value));
-  document.getElementById("new-draft").addEventListener("click", () => addDraft(false));
-  document.getElementById("duplicate-draft").addEventListener("click", () => addDraft(true));
-  document.getElementById("rename-draft").addEventListener("click", renameDraft);
-  document.getElementById("delete-draft").addEventListener("click", deleteDraft);
+  document.getElementById("new-task").addEventListener("click", startNewTask);
+  elements.recoverTask.addEventListener("click", openRecovery);
   document.getElementById("copy-selection").addEventListener("click", copySelection);
   document.getElementById("paste-selection").addEventListener("click", pasteSelection);
   document.getElementById("clear-selection").addEventListener("click", clearSelection);
