@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Giotto ARC editor">
-  <rect width="512" height="512" rx="96" fill="#172033"/>
-  <g stroke="#172033" stroke-width="10">
-    <path fill="#5a67d8" d="M76 76h120v120H76z"/>
+  <rect width="512" height="512" rx="96" fill="#0e2639"/>
+  <g stroke="#0e2639" stroke-width="10">
+    <path fill="#0074d9" d="M76 76h120v120H76z"/>
     <path fill="#ff4136" d="M196 76h120v120H196z"/>
     <path fill="#ffdc00" d="M316 76h120v120H316z"/>
     <path fill="#2ecc40" d="M76 196h120v120H76z"/>

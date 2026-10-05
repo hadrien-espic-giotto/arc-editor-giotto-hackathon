@@ -46,6 +46,7 @@ jobs:
             service-worker.js \
             manifest.webmanifest \
             icon.svg \
+            logo_oct5.jpeg \
             _site/
 
       - name: Upload static site
