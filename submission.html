@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Submit your team's ARC task and add its explanation for the Giotto ARC workshop.">
+    <meta name="theme-color" content="#ffffff">
+    <title>Giotto · Submit your ARC task</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body class="submission-page">
+    <a class="skip-link" href="#submission-content">Skip to submission</a>
+    <header class="app-header">
+      <div class="brand-header">
+        <div class="wordmark">
+          <img src="logo_oct5.jpeg" alt="Giotto.ai" width="800" height="266">
+        </div>
+        <p class="eyebrow">ARC workshop</p>
+      </div>
+      <nav class="submission-nav" aria-label="Workshop pages">
+        <a href="https://hadrien-espic-giotto.github.io/landing-page-giotto-hackathon/">Workshop home</a>
+        <a href="index.html">Open the editor <span aria-hidden="true">↗</span></a>
+      </nav>
+      <div>
+        <h1>Submit your task</h1>
+        <p class="subtitle">Send your JSON first. You can add the explanation while evaluation is running.</p>
+      </div>
+    </header>
+
+    <main id="submission-content">
+      <p id="submission-notice" class="submission-notice">Preview only. Submissions are not connected yet; nothing will be sent.</p>
+      <noscript><p>Enable JavaScript to validate your task and use this form.</p></noscript>
+
+      <div class="submission-team">
+        <label for="team-name">Team name</label>
+        <input id="team-name" name="team_name" type="text" maxlength="100" autocomplete="organization" placeholder="e.g. Grid Explorers" aria-describedby="team-help" required>
+        <p id="team-help" class="field-help">Filename: <code id="team-filename">your_team.json</code>. Use the same team name when adding your explanation.</p>
+      </div>
+
+      <!-- For a live endpoint, replace action and remove data-placeholder. -->
+      <form id="task-submission" class="submission-section" action="https://example.com/arc-workshop/submissions/json" method="post" data-placeholder="true">
+        <div class="section-heading">
+          <div><p class="section-kicker">Step 1</p><h2>Task JSON</h2></div>
+          <label class="button button-secondary button-small file-button" for="task-file">Choose JSON file</label>
+          <input id="task-file" class="visually-hidden" type="file" accept="application/json,.json">
+        </div>
+        <label class="visually-hidden" for="task-json">Task JSON</label>
+        <textarea id="task-json" name="task" class="json-input" rows="8" placeholder='Paste your JSON here, or choose the file downloaded from the editor.' aria-describedby="json-help task-status" spellcheck="false" required></textarea>
+        <p id="json-help" class="field-help">Include examples, test inputs, and their correct outputs.</p>
+        <div class="submission-actions">
+          <button class="button button-primary" type="submit" disabled>Submit JSON</button>
+          <p id="task-status" class="submission-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+
+      <!-- The explanation can be sent independently, including on a later visit. -->
+      <!-- For a live endpoint, replace action and remove data-placeholder. -->
+      <form id="explanation-submission" class="submission-section" action="https://example.com/arc-workshop/submissions/explanation" method="post" data-placeholder="true">
+        <div class="section-heading">
+          <div><p class="section-kicker">Step 2 · Can wait</p><h2>Text explanation</h2></div>
+        </div>
+        <label class="visually-hidden" for="task-explanation">Text explanation</label>
+        <textarea id="task-explanation" name="explanation" rows="5" placeholder="Explain the rule and how to solve your task." aria-describedby="explanation-help explanation-status" required></textarea>
+        <p id="explanation-help" class="field-help">Submit this separately when you’re ready, using the same team name.</p>
+        <div class="submission-actions">
+          <button class="button button-secondary" type="submit" disabled>Submit explanation</button>
+          <p id="explanation-status" class="submission-status" role="status" aria-live="polite"></p>
+        </div>
+      </form>
+    </main>
+
+    <script src="core.js"></script>
+    <script src="submission.js"></script>
+  </body>
+</html>
