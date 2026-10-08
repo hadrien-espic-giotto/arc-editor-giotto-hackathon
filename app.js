@@ -31,6 +31,7 @@
     previewContent: document.getElementById("preview-content"),
     downloadFilename: document.getElementById("download-filename"),
     downloadTask: document.getElementById("download-task"),
+    downloadTaskPNG: document.getElementById("download-task-png"),
     toolHelp: document.getElementById("tool-help"),
     shortcutsDialog: document.getElementById("shortcuts-dialog"),
   };
@@ -818,6 +819,7 @@
     reviewedTaskJSON = null;
     elements.downloadFilename.value = `${filenameBase()}.json`;
     elements.downloadTask.disabled = true;
+    elements.downloadTaskPNG.disabled = true;
     elements.exportReport.replaceChildren();
     elements.previewContent.replaceChildren();
     try {
@@ -858,6 +860,7 @@
         elements.exportReport.append(heading, list);
       }
       elements.downloadTask.disabled = false;
+      elements.downloadTaskPNG.disabled = false;
     } catch (error) {
       elements.exportReport.textContent = `Cannot download this task: ${error.message}`;
     }
@@ -878,7 +881,79 @@
     } catch (error) {
       reviewedTaskJSON = null;
       elements.downloadTask.disabled = true;
+      elements.downloadTaskPNG.disabled = true;
       elements.exportReport.textContent = `Cannot download this task: ${error.message}`;
+    }
+  }
+
+  function taskImage(task, title) {
+    const cellSize = 28;
+    const padding = 32;
+    const gap = 64;
+    const pairs = [...task.train, ...task.test];
+    const columnWidth = pairs.reduce((width, pair) => Math.max(width,
+      pair.input[0].length * cellSize + 1, pair.output[0].length * cellSize + 1), 256);
+    const width = padding * 2 + columnWidth * 2 + gap;
+    const height = 88 + 48 * 2 + pairs.reduce((total, pair) =>
+      total + 28 + Math.max(pair.input.length, pair.output.length) * cellSize + 1, 0) + padding;
+    const scale = Math.min(2, 16000 / width, 16000 / height, Math.sqrt(16000000 / (width * height)));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(width * scale);
+    canvas.height = Math.ceil(height * scale);
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Image rendering is unavailable in this browser.");
+    context.scale(scale, scale);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, width, height);
+    context.textBaseline = "top";
+
+    function text(value, x, y, size = 16, bold = false) {
+      context.fillStyle = "#0e2639";
+      context.font = `${bold ? "600" : "400"} ${size}px system-ui, sans-serif`;
+      context.fillText(value, x, y, width - padding * 2);
+    }
+
+    function grid(value, x, y) {
+      context.fillStyle = "#313746";
+      context.fillRect(x, y, value[0].length * cellSize + 1, value.length * cellSize + 1);
+      value.forEach((row, rowIndex) => row.forEach((color, columnIndex) => {
+        context.fillStyle = COLORS[color];
+        context.fillRect(x + columnIndex * cellSize + 1, y + rowIndex * cellSize + 1, cellSize - 1, cellSize - 1);
+      }));
+    }
+
+    text(title, padding, padding, 32, true);
+    let y = 88;
+    for (const sectionName of ["train", "test"]) {
+      text(sectionName === "train" ? "Examples" : "Tests", padding, y, 22, true);
+      y += 48;
+      task[sectionName].forEach((pair) => {
+        const gridY = y;
+        grid(pair.input, padding, gridY);
+        grid(pair.output, padding + columnWidth + gap, gridY);
+        text("→", padding + columnWidth + 22, gridY + Math.max(pair.input.length, pair.output.length) * cellSize / 2 - 14, 24);
+        y += 28 + Math.max(pair.input.length, pair.output.length) * cellSize + 1;
+      });
+    }
+    return canvas;
+  }
+
+  async function downloadTaskPNG() {
+    if (!elements.exportDialog.open || !reviewedTaskJSON || elements.downloadTaskPNG.disabled) return;
+    elements.downloadTaskPNG.disabled = true;
+    try {
+      const filename = taskDownloadFilename().replace(/\.json$/, ".png");
+      const canvas = taskImage(JSON.parse(reviewedTaskJSON), filename.slice(0, -4));
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob((result) => result ? resolve(result) : reject(new Error("The image could not be created.")), "image/png");
+      });
+      downloadBlob(blob, filename, "image/png");
+    } catch (error) {
+      const message = document.createElement("p");
+      message.textContent = `Could not download task PNG: ${error.message}`;
+      elements.exportReport.appendChild(message);
+    } finally {
+      elements.downloadTaskPNG.disabled = !elements.exportDialog.open || !reviewedTaskJSON;
     }
   }
 
@@ -1007,9 +1082,11 @@
   elements.inheritSize.addEventListener("change", () => { workspace.settings.inheritSize = elements.inheritSize.checked; saveWorkspace(); });
 
   elements.downloadTask.addEventListener("click", confirmDownload);
+  elements.downloadTaskPNG.addEventListener("click", downloadTaskPNG);
   elements.exportDialog.addEventListener("close", () => {
     reviewedTaskJSON = null;
     elements.downloadTask.disabled = true;
+    elements.downloadTaskPNG.disabled = true;
   });
 
   renderPalette();

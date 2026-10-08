@@ -152,6 +152,7 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .review-actions { position: sticky; bottom: 0; border-top: 1px solid var(--line); padding: 14px 0 18px; background: var(--surface); }
 .review-actions p { margin: 0 0 10px; color: var(--muted); font-size: .9rem; }
 .review-actions .button-row { justify-content: flex-end; align-items: flex-end; }
+#download-task-png { margin-right: auto; }
 .download-filename { display: grid; gap: 4px; width: 210px; min-width: 0; color: var(--muted); font-size: .8rem; }
 .download-filename input { width: 100%; min-height: 42px; border: 1px solid var(--line-strong); border-radius: 7px; padding: 9px 10px; background: var(--surface); color: var(--ink); font-size: 1rem; }
 .recovery-modal { width: min(880px, calc(100% - 28px)); color: var(--ink); }
