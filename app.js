@@ -541,6 +541,7 @@
 
     const moreTools = document.createElement("details");
     moreTools.className = "more-grid-tools";
+    moreTools.dataset.gridKey = `${workspace.activeId}:${section}:${pairIndex}:${side}`;
     const moreToolsLabel = document.createElement("summary");
     moreToolsLabel.textContent = "More grid tools";
     const wrapLabel = document.createElement("label");
@@ -615,8 +616,15 @@
   }
 
   function renderPairs() {
+    // Keep expanded tools open when edits rebuild the grid cards.
+    const openTools = new Set(
+      [...document.querySelectorAll(".more-grid-tools[open]")].map((tools) => tools.dataset.gridKey),
+    );
     renderSection("train", elements.trainPairs);
     renderSection("test", elements.testPairs);
+    document.querySelectorAll(".more-grid-tools").forEach((tools) => {
+      tools.open = openTools.has(tools.dataset.gridKey);
+    });
     applySelectionHighlight();
   }
 
