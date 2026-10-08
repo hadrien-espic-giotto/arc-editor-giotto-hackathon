@@ -17,7 +17,10 @@
         <div class="wordmark">
           <img src="logo_oct5.jpeg" alt="Giotto.ai" width="800" height="266">
         </div>
-        <p class="eyebrow">ARC workshop</p>
+        <div class="header-help">
+          <p class="eyebrow">ARC workshop</p>
+          <button id="open-shortcuts" class="button button-secondary button-small keybinds-button" type="button" title="Open keybinds (?)">Keybinds</button>
+        </div>
       </div>
       <div class="editor-header">
         <div class="editor-heading">
@@ -25,15 +28,20 @@
           <p class="subtitle">Draw examples, add a test and its answer, then download your task as JSON.</p>
         </div>
         <div class="header-actions" aria-label="Document actions">
-          <span id="save-state" class="save-state" aria-live="polite">Saved locally</span>
-          <button id="undo" class="button button-secondary" type="button" title="Undo (Ctrl/⌘+Z)">Undo</button>
-          <button id="redo" class="button button-secondary" type="button" title="Redo (Ctrl/⌘+Shift+Z)">Redo</button>
-          <label class="button button-secondary file-button" for="import-file">Import JSON</label>
-          <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json">
-          <button id="open-shortcuts" class="button button-secondary keybinds-button" type="button" title="Open keybinds (?)">Keybinds</button>
-          <a class="button button-secondary" href="https://tally.so/r/xXeqrv" target="_blank" rel="noopener noreferrer">Submit JSON</a>
-          <a class="button button-secondary" href="https://tally.so/r/A7Vgd0" target="_blank" rel="noopener noreferrer">Submit rule description</a>
-          <button id="open-export" class="button button-primary" type="button">Review &amp; download JSON</button>
+          <div class="header-editing">
+            <div class="history-actions" role="group" aria-label="Edit history">
+              <button id="undo" class="button button-secondary button-small" type="button" title="Undo (Ctrl/⌘+Z)">Undo</button>
+              <button id="redo" class="button button-secondary button-small" type="button" title="Redo (Ctrl/⌘+Shift+Z)">Redo</button>
+            </div>
+            <span id="save-state" class="save-state" aria-live="polite">Saved locally</span>
+          </div>
+          <div class="document-actions">
+            <label class="button button-secondary file-button" for="import-file">Import JSON</label>
+            <input id="import-file" class="visually-hidden" type="file" accept="application/json,.json">
+            <a class="button button-secondary" href="https://tally.so/r/xXeqrv" target="_blank" rel="noopener noreferrer">Submit JSON</a>
+            <a class="button button-secondary submit-rule" href="https://tally.so/r/A7Vgd0" target="_blank" rel="noopener noreferrer">Submit rule description</a>
+            <button id="open-export" class="button button-primary" type="button">Review &amp; download JSON</button>
+          </div>
         </div>
       </div>
     </header>
