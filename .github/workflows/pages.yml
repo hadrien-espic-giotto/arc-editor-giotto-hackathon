@@ -43,8 +43,6 @@ jobs:
             styles.css \
             core.js \
             app.js \
-            submission.html \
-            submission.js \
             service-worker.js \
             manifest.webmanifest \
             icon.svg \

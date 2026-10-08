@@ -84,28 +84,12 @@ There is no build step and no runtime dependency, CDN, account, or backend.
   outside the editor.
 - Work from a static host, with an offline application cache after first load.
 
-## Submission page
+## Submissions
 
-Open `submission.html`, or use **Submit task** in the editor. The page accepts a
-team name and pasted/uploaded ARC JSON, with a separate button for the text
-explanation. Team names become snake_case filenames, such as `grid_explorers.json`
-and `grid_explorers.txt`. Only the team name is remembered in this browser, so
-participants can return to add an explanation while evaluation is running.
+Use the password-protected Tally forms linked from the editor and workshop landing page:
 
-Both submission endpoints currently use placeholder URLs. Preview submissions
-validate the content but do not send data. To connect
-a backend, replace each form's `action` in `submission.html` and remove its
-`data-placeholder="true"` attribute. **Workshop home** links to the published
-landing page at <https://hadrien-espic-giotto.github.io/landing-page-giotto-hackathon/>.
-
-Each endpoint receives an HTTP POST with `Content-Type: application/json`:
-
-- Task: `{ "team_name": "Grid Explorers", "filename": "grid_explorers.json", "task": { "train": [...], "test": [...] } }`
-- Explanation: `{ "team_name": "Grid Explorers", "filename": "grid_explorers.txt", "explanation": "..." }`
-
-The backend must associate the two files by their shared filename base; the
-explanation can arrive independently on a later visit. A successful HTTP
-response confirms submission; errors leave the content available for retry.
+- [Submit JSON](https://tally.so/r/xXeqrv)
+- [Submit rule description](https://tally.so/r/A7Vgd0)
 
 ## Local-data behavior
 

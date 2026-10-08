@@ -17,20 +17,6 @@ test("every DOM id requested by the app exists in the page", () => {
   assert.deepEqual(missing, []);
 });
 
-test("submission page has every requested DOM id and is included in the public site", () => {
-  const submissionHTML = fs.readFileSync(path.join(root, "submission.html"), "utf8");
-  const submissionApp = fs.readFileSync(path.join(root, "submission.js"), "utf8");
-  const workflow = fs.readFileSync(path.join(root, ".github/workflows/pages.yml"), "utf8");
-  const ids = new Set([...submissionHTML.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]));
-  const requested = [...submissionApp.matchAll(/getElementById\("([^"]+)"\)/g)].map((match) => match[1]);
-  assert.deepEqual(requested.filter((id) => !ids.has(id)), []);
-  for (const file of ["submission.html", "submission.js"]) {
-    assert.ok(worker.includes(`"./${file}"`));
-    assert.ok(workflow.includes(`${file} \\`));
-  }
-  assert.ok(html.includes('href="submission.html"'));
-});
-
 test("page uses only local script and stylesheet assets", () => {
   const assets = [...html.matchAll(/<(?:script|link)\b[^>]*(?:src|href)="([^"]+)"/g)].map((match) => match[1]);
   assert.ok(assets.includes("core.js"));

@@ -166,36 +166,6 @@ input[type="checkbox"] { accent-color: var(--accent); }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 
-.submission-page .app-header, .submission-page main { width: min(660px, calc(100% - 48px)); }
-.submission-page .app-header { gap: 22px; padding-top: 36px; }
-.submission-page .subtitle { max-width: none; }
-.submission-nav { display: flex; justify-content: space-between; gap: 16px; }
-.submission-nav a { color: var(--muted); font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; }
-.submission-nav a:hover { color: var(--ink); }
-.submission-nav a:focus-visible { outline: 3px solid var(--focus); outline-offset: 5px; }
-.submission-notice { margin: 0 0 20px; border-radius: 7px; padding: 10px 12px; background: var(--surface-muted); color: var(--muted); font-size: .8rem; line-height: 1.5; }
-.submission-team { padding-bottom: 20px; }
-.submission-team label { display: block; margin-bottom: 8px; font-size: .9rem; font-weight: 600; }
-.submission-page input[type="text"], .submission-page textarea { width: 100%; border: 1px solid var(--line-strong); border-radius: 7px; padding: 11px 12px; background: var(--surface); color: var(--ink); }
-.submission-page textarea { display: block; resize: vertical; min-height: 100px; line-height: 1.5; }
-.submission-page textarea::placeholder, .submission-page input::placeholder { color: var(--muted); opacity: 1; }
-.submission-page .json-input { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .85rem; }
-.submission-page .field-help { margin: 8px 0 0; color: var(--muted); font-size: .8rem; line-height: 1.5; overflow-wrap: anywhere; }
-.submission-section { border-top: 1px solid var(--line); padding: 22px 0; }
-.submission-section h2 { font-size: 1rem; }
-.submission-actions { display: flex; align-items: center; gap: 14px; margin-top: 14px; }
-.submission-actions .button { flex-shrink: 0; }
-.submission-status { min-width: 0; margin: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; overflow-wrap: anywhere; }
-.submission-status.error { color: var(--danger); }
-.submission-status.success { color: var(--success); }
-
-@media (max-width: 650px) {
-  .submission-page .app-header, .submission-page main { width: calc(100% - 32px); }
-  .submission-page .app-header { padding-top: 22px; }
-  .submission-page .section-heading { flex-direction: row; align-items: center; }
-  .submission-actions { align-items: flex-start; flex-direction: column; gap: 10px; }
-}
-
 @media (max-width: 1100px) {
   .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .editor-header { align-items: flex-start; flex-direction: column; gap: 14px; }
