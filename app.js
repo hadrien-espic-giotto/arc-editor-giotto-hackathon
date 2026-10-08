@@ -814,10 +814,27 @@
       const report = Core.analyzeDocument(editorDocument);
       renderPreview();
       reviewedTaskJSON = Core.serializeTask(editorDocument.task);
-      const valid = document.createElement("p");
-      valid.className = "valid-message";
-      valid.textContent = `JSON format is valid: ${report.trainCount} example${report.trainCount === 1 ? "" : "s"} and ${report.testCount} test${report.testCount === 1 ? "" : "s"}.`;
-      elements.exportReport.appendChild(valid);
+      if (report.requirementWarnings.length) {
+        const alert = document.createElement("div");
+        alert.className = "requirement-warning";
+        const heading = document.createElement("h3");
+        heading.textContent = "⚠ Task requirements need attention";
+        const list = document.createElement("ul");
+        report.requirementWarnings.forEach((warning) => {
+          const item = document.createElement("li");
+          item.textContent = warning;
+          list.appendChild(item);
+        });
+        const help = document.createElement("p");
+        help.textContent = "Go back to editing to fix these warnings. You can still download the task.";
+        alert.append(heading, list, help);
+        elements.exportReport.appendChild(alert);
+      } else {
+        const valid = document.createElement("p");
+        valid.className = "valid-message";
+        valid.textContent = "Task requirements met: 3 examples, all grids 8×8, and 1 test.";
+        elements.exportReport.appendChild(valid);
+      }
       if (report.warnings.length) {
         const heading = document.createElement("p");
         heading.textContent = "Before downloading, check these details. You can still download if they are intentional.";

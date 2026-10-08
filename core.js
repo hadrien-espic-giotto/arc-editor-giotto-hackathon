@@ -349,12 +349,17 @@
   function analyzeDocument(document) {
     validateDocument(document);
     const warnings = [];
+    const requirementWarnings = [];
     let blankCount = 0;
+    let nonStandardGridCount = 0;
     let unchangedTrainingPairs = 0;
     for (const section of ["train", "test"]) {
       document.task[section].forEach((pair) => {
         if (isBlankGrid(pair.input)) blankCount += 1;
         if (isBlankGrid(pair.output)) blankCount += 1;
+        for (const grid of [pair.input, pair.output]) {
+          if (grid.length !== 8 || grid[0].length !== 8) nonStandardGridCount += 1;
+        }
       });
     }
     document.task.train.forEach((pair) => {
@@ -362,12 +367,22 @@
     });
     if (blankCount) warnings.push(`${blankCount} grid${blankCount === 1 ? " is" : "s are"} entirely black.`);
     if (unchangedTrainingPairs) warnings.push(`${unchangedTrainingPairs} example${unchangedTrainingPairs === 1 ? " has" : "s have"} identical input and output grids.`);
+    if (document.task.train.length !== 3) {
+      requirementWarnings.push(`Exactly 3 examples are required. This task has ${document.task.train.length}.`);
+    }
+    if (nonStandardGridCount) {
+      requirementWarnings.push(`Every input and output grid must be 8×8. ${nonStandardGridCount} grid${nonStandardGridCount === 1 ? " is" : "s are"} a different size.`);
+    }
+    if (document.task.test.length > 1) {
+      requirementWarnings.push(`Only 1 test is allowed. This task has ${document.task.test.length}.`);
+    }
     return {
       valid: true,
       trainCount: document.task.train.length,
       testCount: document.task.test.length,
       gridCount: (document.task.train.length + document.task.test.length) * 2,
       warnings,
+      requirementWarnings,
     };
   }
 
