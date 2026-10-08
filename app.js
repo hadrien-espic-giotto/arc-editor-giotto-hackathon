@@ -228,6 +228,10 @@
   }
 
   function selectTool(tool) {
+    if (tool !== activeTool) {
+      finishPendingStroke();
+      if (tool !== "select") clearSelection();
+    }
     activeTool = tool;
     document.querySelectorAll("[data-tool]").forEach((button) => {
       const selected = button.dataset.tool === tool;
