@@ -29,6 +29,7 @@
     exportDialog: document.getElementById("export-dialog"),
     exportReport: document.getElementById("export-report"),
     previewContent: document.getElementById("preview-content"),
+    downloadFilename: document.getElementById("download-filename"),
     downloadTask: document.getElementById("download-task"),
     toolHelp: document.getElementById("tool-help"),
     shortcutsDialog: document.getElementById("shortcuts-dialog"),
@@ -787,6 +788,14 @@
     return Core.slugify(activeDraft().name);
   }
 
+  function taskDownloadFilename() {
+    const base = elements.downloadFilename.value.trim()
+      .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
+      .replace(/(?:\.json)+$/i, "")
+      .replace(/[.\s]+$/g, "");
+    return `${base || filenameBase()}.json`;
+  }
+
   function downloadBlob(content, filename, type = "application/json") {
     const blob = content instanceof Blob ? content : new Blob([content], { type });
     const url = URL.createObjectURL(blob);
@@ -807,6 +816,7 @@
 
   function openExportDialog() {
     reviewedTaskJSON = null;
+    elements.downloadFilename.value = `${filenameBase()}.json`;
     elements.downloadTask.disabled = true;
     elements.exportReport.replaceChildren();
     elements.previewContent.replaceChildren();
@@ -863,7 +873,7 @@
         showStatus("The task changed. Review the updated preview before downloading.");
         return;
       }
-      downloadBlob(reviewedTaskJSON, `${filenameBase()}.json`);
+      downloadBlob(reviewedTaskJSON, taskDownloadFilename());
       elements.exportDialog.close();
     } catch (error) {
       reviewedTaskJSON = null;
