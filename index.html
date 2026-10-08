@@ -70,7 +70,7 @@
             <button class="tool-button" data-tool="fill" type="button" aria-pressed="false" title="Flood fill (F)">Fill</button>
             <button class="tool-button" data-tool="select" type="button" aria-pressed="false" title="Select (S)">Select</button>
           </div>
-          <p id="tool-help" class="tool-help" aria-live="polite">Paint: click or drag to color cells.</p>
+          <p id="tool-help" class="tool-help" aria-live="polite">Paint: click or drag to color cells. Click a matching cell to clear it. Ctrl+click replaces that color throughout the grid.</p>
         </div>
         <div class="tool-block">
           <h2>Selected cells</h2>
@@ -167,6 +167,8 @@
         <dl class="shortcut-list">
           <div><dt><kbd>0–9</kbd></dt><dd>Select the matching palette color</dd></div>
           <div><dt><kbd>P</kbd> <kbd>F</kbd> <kbd>S</kbd></dt><dd>Switch to Paint, Fill, or Select</dd></div>
+          <div><dt>Paint click</dt><dd>Paint a cell, or reset it to black (0) if it already matches the selected color. Drag to paint continuously.</dd></div>
+          <div><dt><kbd>Ctrl/⌘</kbd> + left click</dt><dd>Replace every instance of the clicked color in that grid with the selected color</dd></div>
           <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>Z</kbd></dt><dd>Undo the last change</dd></div>
           <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></dt><dd>Redo the last change; <kbd>Ctrl</kbd> + <kbd>Y</kbd> also works</dd></div>
           <div><dt><kbd>Ctrl/⌘</kbd> + <kbd>C</kbd></dt><dd>Copy the selected cells</dd></div>

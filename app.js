@@ -239,7 +239,7 @@
       button.setAttribute("aria-pressed", String(selected));
     });
     const instructions = {
-      paint: "Paint: click or drag to color cells.",
+      paint: "Paint: click or drag to color cells. Click a matching cell to clear it. Ctrl+click replaces that color throughout the grid.",
       fill: "Fill: click to recolor connected cells of the same color.",
       select: "Select: drag over cells, copy them, then select a destination and paste.",
     };
@@ -269,15 +269,15 @@
     editorDocument.task[reference.section][reference.pairIndex][reference.side] = grid;
   }
 
-  function paintReference(reference) {
+  function paintReference(reference, color = selectedColor) {
     const grid = getGrid(reference);
-    if (grid[reference.row][reference.column] === selectedColor) return false;
-    grid[reference.row][reference.column] = selectedColor;
+    if (grid[reference.row][reference.column] === color) return false;
+    grid[reference.row][reference.column] = color;
     const selector = `.grid-cell[data-section="${reference.section}"][data-pair-index="${reference.pairIndex}"][data-side="${reference.side}"][data-row="${reference.row}"][data-column="${reference.column}"]`;
     const cell = document.querySelector(selector);
     if (cell) {
-      cell.style.background = COLORS[selectedColor];
-      cell.setAttribute("aria-label", `Row ${reference.row + 1}, column ${reference.column + 1}, ${COLOR_NAMES[selectedColor]} (${selectedColor})`);
+      cell.style.background = COLORS[color];
+      cell.setAttribute("aria-label", `Row ${reference.row + 1}, column ${reference.column + 1}, ${COLOR_NAMES[color]} (${color})`);
     }
     saveWorkspace();
     return true;
@@ -321,6 +321,13 @@
     if (event.button !== 0 || drawing) return;
     event.preventDefault();
     const reference = gridReferenceFromCell(cell);
+    if (event.ctrlKey || event.metaKey) {
+      const grid = getGrid(reference);
+      const clickedColor = grid[reference.row][reference.column];
+      commit("Replaced grid color", () => setGrid(reference,
+        grid.map((row) => row.map((color) => color === clickedColor ? selectedColor : color))));
+      return;
+    }
     if (activeTool === "fill") {
       commit("Flood filled grid", () => setGrid(reference, Core.floodFill(getGrid(reference), reference.row, reference.column, selectedColor)));
       return;
@@ -333,6 +340,10 @@
       end: reference,
       before: snapshot(),
       changed: false,
+      toggleOnClick: activeTool === "paint" && getGrid(reference)[reference.row][reference.column] === selectedColor,
+      dragged: false,
+      startX: event.clientX,
+      startY: event.clientY,
     };
     if (activeTool === "paint") drawing.changed = paintReference(reference);
     if (activeTool === "select") highlightRectangle(reference, reference, reference);
@@ -340,9 +351,11 @@
 
   function handlePointerMove(event) {
     if (!drawing || drawing.pointerId !== event.pointerId) return;
+    if (Math.hypot(event.clientX - drawing.startX, event.clientY - drawing.startY) >= 4) drawing.dragged = true;
     const cell = cellAtPoint(event);
-    if (!cell) return;
+    if (!cell) { drawing.dragged = true; return; }
     const reference = gridReferenceFromCell(cell);
+    if (!sameGrid(reference, drawing.start) || reference.row !== drawing.start.row || reference.column !== drawing.start.column) drawing.dragged = true;
     if (!sameGrid(reference, drawing.grid)) return;
     event.preventDefault();
     drawing.end = reference;
@@ -355,6 +368,9 @@
     const action = drawing;
     drawing = null;
     if (action.tool === "paint") {
+      if (event.type === "pointerup" && action.toggleOnClick && !action.dragged) {
+        action.changed = paintReference(action.start, 0) || action.changed;
+      }
       if (action.changed) {
         remember(action.before, "Painted stroke");
         showStatus("Painted stroke.", "success");
