@@ -848,9 +848,9 @@
       reviewedTaskJSON = Core.serializeTask(editorDocument.task);
       if (report.requirementWarnings.length) {
         const alert = document.createElement("div");
-        alert.className = "requirement-warning";
+        alert.className = "task-warning";
         const heading = document.createElement("h3");
-        heading.textContent = "⚠ Task requirements need attention";
+        heading.textContent = "⚠ Task warnings";
         const list = document.createElement("ul");
         report.requirementWarnings.forEach((warning) => {
           const item = document.createElement("li");
@@ -858,13 +858,13 @@
           list.appendChild(item);
         });
         const help = document.createElement("p");
-        help.textContent = "Go back to editing to fix these warnings. You can still download the task.";
+        help.textContent = "These are recommendations. You can download JSON or PNG with these warnings.";
         alert.append(heading, list, help);
         elements.exportReport.appendChild(alert);
       } else {
         const valid = document.createElement("p");
         valid.className = "valid-message";
-        valid.textContent = "Task requirements met: 3 examples, all grids 8×8, and 1 test.";
+        valid.textContent = "Ready to download.";
         elements.exportReport.appendChild(valid);
       }
       if (report.warnings.length) {

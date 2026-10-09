@@ -101,7 +101,7 @@ test("slugify produces safe filenames", () => {
   assert.equal(Core.slugify(""), "arc-task");
 });
 
-test("review requirements accept exactly 3 examples, 8×8 grids and 1 test", () => {
+test("review has no format warnings for 3 examples, 8×8 grids and 1 test", () => {
   const report = Core.analyzeDocument(Core.createDocument(Core.createTask()));
   assert.deepEqual(report.requirementWarnings, []);
 });
@@ -109,7 +109,7 @@ test("review requirements accept exactly 3 examples, 8×8 grids and 1 test", () 
 test("review warns for both too few and too many examples", () => {
   for (const count of [1, 2, 4]) {
     const report = Core.analyzeDocument(Core.createDocument(Core.createTask(count)));
-    assert.deepEqual(report.requirementWarnings, [`Exactly 3 examples are required. This task has ${count}.`]);
+    assert.deepEqual(report.requirementWarnings, [`Recommended: 3 examples. This task has ${count}.`]);
   }
 });
 
@@ -120,20 +120,20 @@ test("review checks both dimensions of every example and test input and output",
         const task = Core.createTask();
         task[section][task[section].length - 1][side] = Core.createGrid(width, height);
         const report = Core.analyzeDocument(Core.createDocument(task));
-        assert.deepEqual(report.requirementWarnings, ["Every input and output grid must be 8×8. 1 grid is a different size."]);
+        assert.deepEqual(report.requirementWarnings, ["Recommended: 8×8 input and output grids. 1 grid is a different size."]);
       }
     }
   }
 });
 
-test("review reports all unmet requirements together without preventing export", () => {
+test("review reports all format recommendations together without preventing export", () => {
   const document = Core.createDocument(Core.createTask(4, 2, 7, 8));
   const before = Core.serializeTask(document.task);
   const report = Core.analyzeDocument(document);
   assert.deepEqual(report.requirementWarnings, [
-    "Exactly 3 examples are required. This task has 4.",
-    "Every input and output grid must be 8×8. 12 grids are a different size.",
-    "Only 1 test is allowed. This task has 2.",
+    "Recommended: 3 examples. This task has 4.",
+    "Recommended: 8×8 input and output grids. 12 grids are a different size.",
+    "Recommended: 1 test. This task has 2.",
   ]);
   assert.equal(report.valid, true);
   assert.equal(Core.serializeTask(document.task), before);

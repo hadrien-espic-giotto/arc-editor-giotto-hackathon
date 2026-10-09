@@ -368,13 +368,13 @@
     if (blankCount) warnings.push(`${blankCount} grid${blankCount === 1 ? " is" : "s are"} entirely black.`);
     if (unchangedTrainingPairs) warnings.push(`${unchangedTrainingPairs} example${unchangedTrainingPairs === 1 ? " has" : "s have"} identical input and output grids.`);
     if (document.task.train.length !== 3) {
-      requirementWarnings.push(`Exactly 3 examples are required. This task has ${document.task.train.length}.`);
+      requirementWarnings.push(`Recommended: 3 examples. This task has ${document.task.train.length}.`);
     }
     if (nonStandardGridCount) {
-      requirementWarnings.push(`Every input and output grid must be 8×8. ${nonStandardGridCount} grid${nonStandardGridCount === 1 ? " is" : "s are"} a different size.`);
+      requirementWarnings.push(`Recommended: 8×8 input and output grids. ${nonStandardGridCount} grid${nonStandardGridCount === 1 ? " is" : "s are"} a different size.`);
     }
     if (document.task.test.length > 1) {
-      requirementWarnings.push(`Only 1 test is allowed. This task has ${document.task.test.length}.`);
+      requirementWarnings.push(`Recommended: 1 test. This task has ${document.task.test.length}.`);
     }
     return {
       valid: true,

@@ -133,11 +133,11 @@ input[type="checkbox"] { accent-color: var(--accent); }
 .modal-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 16px; }
 .warning-list { border: 1px solid #ecd59a; border-radius: 9px; padding: 12px 12px 12px 30px; background: #fffaf0; color: #765b13; }
 .valid-message { border: 1px solid #b7dec8; border-radius: 9px; padding: 12px; background: #f2fbf6; color: var(--success); font-weight: 750; }
-.requirement-warning { margin-bottom: 18px; border: 2px solid var(--danger); border-left-width: 6px; border-radius: 9px; padding: 16px; background: #fff0ee; color: #8a1c13; }
-.requirement-warning h3 { font-size: 1.1rem; font-weight: 750; }
-.requirement-warning ul { margin: 12px 0; padding-left: 22px; font-weight: 700; line-height: 1.5; }
-.requirement-warning li + li { margin-top: 8px; }
-.requirement-warning p { margin-bottom: 0; line-height: 1.5; }
+.task-warning { margin-bottom: 18px; border: 1px solid #ecd59a; border-radius: 9px; padding: 16px; background: #fffaf0; color: #765b13; }
+.task-warning h3 { font-size: 1rem; font-weight: 600; }
+.task-warning ul { margin: 12px 0; padding-left: 22px; line-height: 1.5; }
+.task-warning li + li { margin-top: 8px; }
+.task-warning p { margin-bottom: 0; line-height: 1.5; }
 .review-modal { width: min(1080px, calc(100% - 28px)); }
 .review-card { padding-bottom: 0; }
 #review-help { color: var(--muted); line-height: 1.5; }
